@@ -7,7 +7,7 @@ import re
 
 from aiohttp import web
 
-from . import errors
+from . import errors, ui_routes
 from .service import Service, canonical
 
 log = logging.getLogger("dossier.http")
@@ -115,6 +115,8 @@ def build_app(service: Service) -> web.Application:
 
     @routes.get("/dossiers/{domain}")
     async def read(request):
+        if ui_routes.wants_html(request):
+            return await ui_routes.document(request)  # the browser and the API share this path
         auth(request)
         return _json(200, service.read(request.match_info["domain"]))
 
@@ -145,4 +147,5 @@ def build_app(service: Service) -> web.Application:
 
     app = web.Application(middlewares=[envelope], client_max_size=16 * 1024 * 1024)
     app.add_routes(routes)
+    ui_routes.add_routes(app)
     return app
