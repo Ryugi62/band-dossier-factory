@@ -1,0 +1,223 @@
+{
+ "domain": "kestrel-dynamics.test",
+ "names": [
+  "Kestrel Dynamics"
+ ],
+ "pages": [
+  {
+   "url": "https://kestrel-dynamics.test/team",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2024-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Team | Kestrel Dynamics",
+   "text": "Meet the Kestrel Dynamics leadership.\nKestrel Dynamics CEO: Mara Lind.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "kestrel-dynamics.test"
+   }
+  },
+  {
+   "url": "https://flightwire.test/2026/kestrel-dynamics-new-chief",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-02-01T00:00:00Z",
+   "true_from": null,
+   "title": "Kestrel Dynamics names a new chief",
+   "text": "Kestrel Dynamics named Tomas Berg chief executive officer.\nThe appointment surprised analysts.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "flightwire.test"
+   }
+  },
+  {
+   "url": "https://nordicbiz.test/2025/kestrel-dynamics-oslo",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-05-01T00:00:00Z",
+   "true_from": null,
+   "title": "Kestrel Dynamics in Oslo",
+   "text": "Kestrel Dynamics is headquartered in Oslo.\nKestrel Dynamics builds inspection drones.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "nordicbiz.test"
+   }
+  },
+  {
+   "url": "https://harbourpost.test/2025/kestrel-dynamics-moves",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-09-01T10:00:00+02:00",
+   "true_from": null,
+   "title": "Kestrel Dynamics moves",
+   "text": "Kestrel Dynamics is based in Bergen.\nThe move followed a new contract.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbourpost.test"
+   }
+  },
+  {
+   "url": "https://companydb.test/kestrel-dynamics",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-03-01T00:00:00Z",
+   "true_from": null,
+   "title": "Kestrel Dynamics - company data",
+   "text": "Kestrel Dynamics is headquartered in Tromsø.\nKestrel Dynamics was founded in 2002.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "companydb.test"
+   }
+  },
+  {
+   "url": "https://startuplist.test/kestrel-dynamics",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "sometime in 2019",
+   "true_from": null,
+   "title": "Kestrel Dynamics listing",
+   "text": "Kestrel Dynamics was founded in 2001.\nKestrel Dynamics sells to utilities.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "startuplist.test"
+   }
+  },
+  {
+   "url": "https://kestrel-dynamics.test/a-careers",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": null,
+   "true_from": null,
+   "title": "Careers | Kestrel Dynamics",
+   "text": "Kestrel Dynamics employs 120 people.\nWe hire engineers.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "kestrel-dynamics.test"
+   }
+  },
+  {
+   "url": "https://kestrel-dynamics.test/b-jobs",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": null,
+   "true_from": null,
+   "title": "Jobs | Kestrel Dynamics",
+   "text": "Kestrel Dynamics employs 600 people.\nOpen roles are listed below.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "kestrel-dynamics.test"
+   }
+  },
+  {
+   "url": "https://registry.test/kestrel-dynamics/capital",
+   "kind": "filing",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-01-15T00:00:00Z",
+   "true_from": null,
+   "title": "Capital record Kestrel Dynamics",
+   "text": "Kestrel Dynamics has raised $20M in total.\nKestrel Dynamics has raised $15M from two funds.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "registry.test"
+   }
+  },
+  {
+   "url": "https://kestrel-dynamics.test/legal",
+   "kind": null,
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": null,
+   "true_from": null,
+   "title": "Legal | Kestrel Dynamics",
+   "text": "The registered name of the company is Kestrel Dynamics AS.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "kestrel-dynamics.test"
+   }
+  },
+  {
+   "url": "https://dronedirectory.test/kestrel-dynamics",
+   "kind": "blog",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-03-01T00:00:00Z",
+   "true_from": null,
+   "title": "Kestrel Dynamics directory entry",
+   "text": "Kestrel Dynamics Holding AS is the legal entity behind the drones.\nKestrel Dynamics raised $99M last year.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "dronedirectory.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [],
+   "1": []
+  }
+ }
+}
