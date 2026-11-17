@@ -36,20 +36,22 @@ class Batch:
     budget: int
     domains: list
     spent: int = 0
-    running: list = field(default_factory=list)   # domains whose build this batch started and that still run
+    running: list = field(default_factory=list)   # domains whose build this batch started (or queued) and that still run
+    queued: list = field(default_factory=list)    # domains whose build waits for budget (D47), in the order given
     reserved: int = 0                              # in-flight reservations of its builds (in memory)
+    meters: dict = field(default_factory=dict)    # domain -> Meter of each running build (in memory)
 
     def can_reserve(self, cost: int) -> bool:
         return self.spent + self.reserved + cost <= self.budget
 
     def to_dict(self) -> dict:
         return {"id": self.id, "owner": self.owner, "budget": self.budget, "domains": self.domains,
-                "spent": self.spent, "running": self.running}
+                "spent": self.spent, "running": self.running, "queued": self.queued}
 
     @classmethod
     def from_dict(cls, d: dict) -> Batch:
         return cls(id=d["id"], owner=d["owner"], budget=d["budget"], domains=list(d["domains"]), spent=d["spent"],
-                   running=list(d.get("running", [])))
+                   running=list(d.get("running", [])), queued=list(d.get("queued", [])))
 
 
 def empty_history() -> dict:
@@ -244,5 +246,6 @@ class Store:
                             "request": v["request"], "response": v["response"]} for k, v in self.idempotent.items()],
             "feed": self.feed,
             "next_seq": self.next_seq,
-            "batches": [dict(b.to_dict(), running=[] if settled else b.running) for b in self.batches.values()],
+            "batches": [dict(b.to_dict(), running=[] if settled else b.running, queued=[] if settled else b.queued)
+                        for b in self.batches.values()],
         }

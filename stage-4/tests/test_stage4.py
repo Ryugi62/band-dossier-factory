@@ -123,5 +123,52 @@ class Batches(unittest.TestCase):
         self.assertFalse(b.reserve(1))
 
 
+class BatchAdmission(unittest.TestCase):
+    """D47: when the budget cannot cover every build, earlier domains take it first."""
+
+    def run_batch(self, domains, budget):
+        from dossier import batches
+        from dossier.provider import SearchHit
+        from dossier.service import Service
+        from tests.test_pipeline import FakeGateway
+
+        hits = {d: [SearchHit(f"https://{d}/a", "About", f"{d.split('.')[0].title()} was founded in 2014.")]
+                for d in domains}
+        pages = {f"https://{d}/a": f"Kind: own\n\n{d.split('.')[0].title()} was founded in 2014." for d in domains}
+        starts = []
+
+        async def scenario():
+            svc = Service(FakeGateway(hits, pages, claims=[]))
+            await svc.reset({"now": "2026-03-01T09:00:00+00:00", "users": []})
+            original = svc._start_build
+            svc._start_build = lambda d, b=None: (starts.append(d.domain), original(d, b))[1]
+            status, body = batches.create(svc, "u", {"domains": domains, "budget_units": budget})
+            for _ in range(200):
+                if svc.store.batches[body["batch_id"]].running == []:
+                    break
+                await asyncio.sleep(0.01)
+            return svc, svc.store.batches[body["batch_id"]]
+
+        svc, batch = asyncio.run(scenario())
+        return svc, batch, starts
+
+    def test_tight_budget_runs_builds_in_order_and_never_overspends(self):
+        domains = ["alpha.test", "bravo.test", "charlie.test", "delta.test"]
+        svc, batch, starts = self.run_batch(domains, 100)
+        self.assertEqual(starts[:2], ["alpha.test", "bravo.test"])
+        self.assertLessEqual(batch.spent, 100)
+        self.assertTrue(all(svc.store.dossiers[d].state == "ready" for d in domains))
+        self.assertEqual(svc.read("alpha.test")["fields"]["founded_year"]["value"], 2014)
+
+    def test_budget_below_any_work_admits_nothing_and_builds_end_ready(self):
+        svc, batch, starts = self.run_batch(["alpha.test", "bravo.test"], 1)
+        self.assertEqual((starts, batch.spent), ([], 0))
+        self.assertTrue(all(svc.store.dossiers[d].state == "ready" for d in ["alpha.test", "bravo.test"]))
+
+    def test_budget_covering_every_build_starts_them_all_at_once(self):
+        svc, batch, starts = self.run_batch(["alpha.test", "bravo.test"], 160)
+        self.assertEqual(starts, ["alpha.test", "bravo.test"])
+
+
 if __name__ == "__main__":
     unittest.main()

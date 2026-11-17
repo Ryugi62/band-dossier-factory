@@ -13,12 +13,16 @@ import logging
 from . import accounts, domains, errors, exchange, timeline, upgrade
 from .clock import Clock, format_ts, parse_rfc3339
 from .pipeline import run_build
-from .provider import Deadline, Gateway, Meter
+from .provider import BUILD_CAP, COST_RESEARCH, COST_SEARCH_LITE, Deadline, Gateway, Meter
 from .store import Dossier, Store, User
 
 log = logging.getLogger("dossier.service")
 # Last resort behind the per-call deadline of provider.Deadline: a build never stays `building` past 300 s.
 BUILD_HARD_LIMIT = 298.0
+# Batch admission (D47): a queued build starts while other builds of its batch run only when the budget they
+# do not already need covers a whole build; with none running, when it covers at least the research run and
+# the domain search (the least a build needs to learn anything).
+MIN_BUILD_WORK = COST_RESEARCH + COST_SEARCH_LITE
 
 
 def canonical(value) -> str:
@@ -58,6 +62,8 @@ class Service:
             batch.spent = min(batch.budget, batch.spent + dossier.inflight)
             if dossier.domain in batch.running:
                 batch.running.remove(dossier.domain)
+            if dossier.domain in batch.queued:
+                batch.queued.remove(dossier.domain)
         time = dossier.builds_started_at or (dossier.builds[-1]["time"] if dossier.builds else None)
         if time is not None:
             dossier.builds.append({"time": time, "outcome": "failed", "spent": dossier.spent_units - dossier.settled_spent,
@@ -255,14 +261,54 @@ class Service:
     # -------------------------------------------------------------- builds
     def _start_build(self, dossier: Dossier, batch=None) -> None:
         dossier.state = "building"
-        build_time = format_ts(self.clock.now())
+        build_time = dossier.builds_started_at if batch is not None and dossier.domain in batch.queued \
+            else format_ts(self.clock.now())
         dossier.builds_started_at = build_time
         generation = self.store.generation
         if batch is not None:
             dossier.batch_id = batch.id
-            batch.running.append(dossier.domain)
+            if dossier.domain in batch.queued:
+                batch.queued.remove(dossier.domain)
+            if dossier.domain not in batch.running:
+                batch.running.append(dossier.domain)
         self.store.save_dossier(dossier, batch=batch)
         dossier.task = asyncio.get_running_loop().create_task(self._build(dossier, generation, build_time, batch))
+
+    # -------------------------------------------------------------- batch admission (D47)
+    def queue_batch_build(self, dossier: Dossier, batch) -> None:
+        """Register a batch's new dossier as building, its build to start when admitted (time = the batch request)."""
+        dossier.state, dossier.batch_id = "building", batch.id
+        dossier.builds_started_at = format_ts(self.clock.now())
+        batch.queued.append(dossier.domain)
+        batch.running.append(dossier.domain)
+        self.store.save_dossier(dossier, batch=batch)
+
+    def admit_batch_builds(self, batch) -> None:
+        """Start queued builds in the order of `domains` while the batch budget still allows work."""
+        generation = self.store.generation
+        while batch.queued and self.store.generation == generation:
+            # what the admitted builds may still spend: an admitted build whose task has not started yet needs 80
+            running = [d for d in batch.running if d not in batch.queued]
+            needed = sum(max(0, batch.meters[d].cap - batch.meters[d].spent) if d in batch.meters else BUILD_CAP
+                         for d in running)
+            free = batch.budget - batch.spent - needed
+            if free >= (BUILD_CAP if running else MIN_BUILD_WORK):
+                self._start_build(self.store.dossiers[batch.queued[0]], batch)
+            elif running:
+                return   # wait for a running build to finish and hand back what it did not need
+            else:
+                for domain in list(batch.queued):   # not admitted: completes ready with what it has (D41)
+                    self._finish_unadmitted(self.store.dossiers[domain], batch)
+                return
+
+    def _finish_unadmitted(self, dossier: Dossier, batch) -> None:
+        batch.queued.remove(dossier.domain)
+        feed = self._record_build(dossier, dossier.builds_started_at, 0, ([], {}))
+        dossier.settled_state, dossier.settled_spent = dossier.state, dossier.spent_units
+        dossier.batch_id = None
+        if dossier.domain in batch.running:
+            batch.running.remove(dossier.domain)
+        self.store.save_dossier(dossier, feed, batch=batch)
 
     def _current(self, dossier: Dossier, generation: int) -> bool:
         return self.store.generation == generation and self.store.dossiers.get(dossier.domain) is dossier
@@ -277,6 +323,8 @@ class Service:
                 self.store.save_dossier(dossier, batch=batch)
 
         meter = Meter(lambda cost: None, deadline=Deadline(self.gateway.live), batch=batch, on_update=on_update)
+        if batch is not None:
+            batch.meters[dossier.domain] = meter
         try:
             result = await asyncio.wait_for(run_build(self.gateway, dossier.domain, meter, build_time), BUILD_HARD_LIMIT)
         except asyncio.CancelledError:
@@ -287,6 +335,9 @@ class Service:
         except Exception:  # noqa: BLE001 - a build never takes the service down
             log.exception("build of %s crashed", dossier.domain)
             result = None
+        finally:
+            if batch is not None:
+                batch.meters.pop(dossier.domain, None)
         if not self._current(dossier, generation):
             return
         if result is None and meter.budget_blocked:
@@ -297,6 +348,8 @@ class Service:
         if batch is not None and dossier.domain in batch.running:
             batch.running.remove(dossier.domain)
         self.store.save_dossier(dossier, feed, batch=batch)
+        if batch is not None and batch.queued:
+            self.admit_batch_builds(batch)
 
     def _record_build(self, dossier: Dossier, build_time: str, spent: int, result) -> list[dict]:
         """Append the build to the log; a ready one adds its history entries and feed entries (stage 3)."""

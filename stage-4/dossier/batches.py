@@ -4,10 +4,14 @@ A batch creates a dossier for each domain that has none and runs its first build
 already has a dossier is not researched and costs the batch nothing. Every call of a batch build
 reserves its worst-case cost against both the build's 80 units and the batch's `budget_units`
 (provider.Meter with the batch as its budget), so the batch never spends more than its budget.
+When the budget covers 80 units for every new build they all run at once; otherwise the builds are
+admitted in the order of `domains` while the budget still allows work (D47, Service.admit_batch_builds),
+and a build never admitted completes `ready` with what it has (nothing).
 """
 from __future__ import annotations
 
 from . import domains, errors
+from .provider import BUILD_CAP
 from .service import Service, canonical
 from .store import Batch, Dossier
 
@@ -60,12 +64,17 @@ def create(service: Service, user_id: str, body: dict) -> tuple[int, dict]:
     store = service.store
     batch = Batch(id=store.new_batch_id(), owner=user_id, budget=budget, domains=names)
     store.batches[batch.id] = batch
-    for domain in names:
-        if domain in store.dossiers:
-            continue
+    new = [d for d in names if d not in store.dossiers]
+    concurrent = budget >= BUILD_CAP * len(new)
+    for domain in new:
         dossier = Dossier(id=store.new_dossier_id(), domain=domain)
         store.dossiers[domain] = dossier
-        service._start_build(dossier, batch)
+        if concurrent:
+            service._start_build(dossier, batch)
+        else:
+            service.queue_batch_build(dossier, batch)
+    if not concurrent:
+        service.admit_batch_builds(batch)
     store.save_batch(batch)
     return 202, view(service, batch)
 
