@@ -68,10 +68,25 @@ Times are from the stage reports in `factory/run-log.md` (UTC, 2026-11-17).
 Stage 1 to 2 has a gap of 44 minutes: the local container VM had stopped after the host
 restarted and had to be started again before the stage-2 dispatch. Work time summed over the
 stages is about 4 h 48 min; wall clock from first dispatch to the stage-4 close is about 5 h 32 min.
-"Units" are the mock web's metered cost units (research, search, render, plain fetch); the
+"Units" (all figures in this table are on the sample providers of the local mock web, not the live web) are the mock web's metered cost units (research, search, render, plain fetch); the
 largest single build used 34, 59, 76 and 77 of the 80-unit cap in stages 1 to 4.
 **Model spend in money or tokens was not captured by the factory**; the room log holds every
-seat's calls but no price, so no figure is claimed here.
+seat's calls but no price or token count, so no money figure is claimed here. What the room log
+does measure (`room.json`, 2,366 entries, 04:57 to 10:29 UTC):
+
+| Seat | Tool calls | Messages to the room | Room-visible characters | Share of characters |
+|---|---|---|---|---|
+| builder | 352 | 127 | 1,637,282 | 52.2% |
+| planner | 130 | 81 | 758,959 | 24.2% |
+| verifier | 334 | 16 | 530,385 | 16.9% |
+| cost-auditor | 118 | 6 | 201,448 | 6.4% |
+| human | 0 | 4 (the four stage dispatches) | 8,866 | 0.3% |
+
+The 3.14 million room-visible characters are a lower bound on what the seats processed (roughly
+0.8 million tokens at about four characters per token); prompts, model-internal reasoning and file
+reads that were not echoed to the room are not in the export. The four human messages are the stage
+dispatches at `room.json` `messages[4]`, `[748]`, `[1216]` and `[1652]`; nothing else from the human
+reaches the room.
 
 ## How the factory catches bad work
 
@@ -108,5 +123,18 @@ seat's calls but no price, so no figure is claimed here.
 ## Reuse
 
 To use the factory on another problem, keep `mandates/` and change only the dispatch message and the
-specification path. The `factory/` folder shows the artifacts to expect per stage: plan, ledger,
+specification path. The mandates name no domain, file layout or language; every problem-specific
+fact reaches the seats through the dispatch. A dispatch for a different problem has the same shape
+as the four used here, for example:
+
+```
+@planner Build stage 1 of the track below as a dark-factory run. Do the whole stage with
+@builder, @verifier and @cost-auditor. Track: invoice-parser. Specification: specs/stage-1.md.
+Rules: docs/rules.md. Result repository: ~/work/invoice-result (branch main). Build only in
+stage-1/. Shipped checks: `make check STAGE=1`. This message is the only human input for the stage.
+```
+
+The cost auditor's workload is defined by the task or by the verifier's ledger, not by its mandate
+(`mandates/cost-auditor.md`, step 2), so nothing in `mandates/` changes. If the new problem has no
+metered cost, the dispatch names what to meter instead (calls, time or bytes). The `factory/` folder shows the artifacts to expect per stage: plan, ledger,
 probes, blind re-derivation, review, cost audit, decisions and a stage report.
