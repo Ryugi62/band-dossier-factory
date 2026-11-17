@@ -33,6 +33,10 @@ class Clock:
             return dt.datetime.now(dt.timezone.utc)
         return self._fixed
 
+    def fixed_iso(self) -> str | None:
+        """The instant the clock was set to, or None while it follows the system time."""
+        return None if self._fixed is None else self._fixed.isoformat()
+
     def set(self, value: dt.datetime) -> None:
         self._fixed = value
 

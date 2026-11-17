@@ -5,7 +5,10 @@ import os
 from aiohttp import web
 
 from .http_app import build_app
+from .persistence import Persistence
 from .service import Service
+
+STATE_PATH = os.environ.get("DOSSIER_STATE_PATH", "/var/lib/dossier/state.db")
 
 
 def main() -> None:
@@ -14,7 +17,8 @@ def main() -> None:
     logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     port = int(os.environ.get("PORT") or "8080")
-    web.run_app(build_app(Service()), host="0.0.0.0", port=port, access_log=None, backlog=512)
+    service = Service(persistence=Persistence(STATE_PATH))
+    web.run_app(build_app(service), host="0.0.0.0", port=port, access_log=None, backlog=512)
 
 
 if __name__ == "__main__":
