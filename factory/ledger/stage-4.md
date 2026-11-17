@@ -244,6 +244,7 @@ All rows of `factory/ledger/stage-1.md` (311), `stage-2.md` (184) and `stage-3.m
 | TD-44 | ★ | D44 | stage-4 export: format_version 1, track "dossier", plus batches, origins, standing-origin state, investors; import accepts four shapes; imported candidates without origin take the URL host; stage-1/2 candidates count at researched_at, stage-3 at their build's time; investors unknown in imported state; kinds as exported | export-state | U5, X1 |
 | TD-45 | ★ | D45 | UI keeps exactly the six stage-2 field testids; executives and investors in separate markup; `/contested` six fields only | ui | B13, B14 |
 | TD-46 | | D46 | cap stays 80; originals and investor pages compete for budget; re-measure discovery; the cost auditor compares with 9.377 | cost | (cost auditor), S1 windows |
+| TD-47 | ★ | D47 | "when the budget cannot cover every build, earlier domains of `domains` take it first and later builds are admitted only while the unspent budget not already needed by running builds still allows work; when the budget covers all builds they still run concurrently as now (the §8 time bound from the batch request holds when calls answer within one second); a build that is not admitted completes `ready` with what it has" | cost | E04 |
 
 ## Rows added by the blind re-derivation
 
@@ -267,6 +268,7 @@ From `factory/reviews/stage-4-blind.md`.
 | E01 | batches: validation table, shape, ownership, 401/404, idempotency, existing dossiers cost nothing |
 | E02 | budget exhaustion (budgets 30, 75, 1): mock log total ≤ budget, batch spent == log, each build ≤ 80, builds end ready |
 | E03 | burst of identical and overlapping batches plus a refresh: one build per domain |
+| E04 | D47: budget 300 over 8 domains and 75 over 3: the first domains reach known fields, as a prefix; a covered budget of 3 builds is done within 10 s |
 | F01 | other providers failing, research failing (5xx and 429), every call failing within 10 s, refusals cost 0 |
 | U5 | upgrades from real stage-1/2/3 exports (closed services) |
 | X1 | stage-4 export/import round trip |
@@ -276,4 +278,4 @@ From `factory/reviews/stage-4-blind.md`.
 
 ## Row count
 
-110 rows: 83 new stage-4 specification rows, 5 export state rows, 10 changed earlier rows, 12 planner-decision rows; 95 marked ★. The 311 stage-1, 184 stage-2 and 123 stage-3 rows remain binding except as changed by TC4-01..TC4-10.
+111 rows: 83 new stage-4 specification rows, 5 export state rows, 10 changed earlier rows, 13 planner-decision rows; 96 marked ★. The 311 stage-1, 184 stage-2 and 123 stage-3 rows remain binding except as changed by TC4-01..TC4-10.
