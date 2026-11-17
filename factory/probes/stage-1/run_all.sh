@@ -7,7 +7,7 @@
 set -euo pipefail
 REPO="$(cd "${1:?usage: run_all.sh <result-repo-checkout>}" && pwd)"
 HERE="$(cd "$(dirname "$0")" && pwd)"
-SF_ROOT="${SF_ROOT:-/Users/ryugi62/band-work/sf-2026}"
+SF_ROOT="${SF_ROOT:-./sf-2026}"
 WEB_DIR="$SF_ROOT/challenges/dossier/web"
 TAG="s1p$$"
 NET="$TAG-net"

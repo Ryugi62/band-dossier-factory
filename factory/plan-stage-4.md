@@ -1,7 +1,7 @@
 # Plan — stage 4 (track dossier, last stage)
 
-Started 2026-11-17T09:03Z. Result folder: `/Users/ryugi62/band-work/result-s1/stage-4/` (copy of the closed, unchanged `stage-3/` at 0c9722c, extended). `stage-1/` (9166a28), `stage-2/` (3e32ac8) and `stage-3/` (0c9722c) stay byte-identical.
-Specification: `/Users/ryugi62/band-work/sf-2026/challenges/dossier/spec/stage-4.md` (pasted in full into every handoff, with the carried-forward stage-1, stage-2 and stage-3 text).
+Started 2026-11-17T09:03Z. Result folder: `<workdir>/result-s1/stage-4/` (copy of the closed, unchanged `stage-3/` at 0c9722c, extended). `stage-1/` (9166a28), `stage-2/` (3e32ac8) and `stage-3/` (0c9722c) stay byte-identical.
+Specification: `<workdir>/sf-2026/challenges/dossier/spec/stage-4.md` (pasted in full into every handoff, with the carried-forward stage-1, stage-2 and stage-3 text).
 
 | # | Item | Scope |
 |---|---|---|

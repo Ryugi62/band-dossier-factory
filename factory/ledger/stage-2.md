@@ -24,7 +24,7 @@ Each run prints one line per probe and ends with `TOTAL: n passed, m failed`. Th
 
 Environment:
 
-- `SF_ROOT` (default `/Users/ryugi62/band-work/sf-2026`)
+- `SF_ROOT` (default `<workdir>/sf-2026`)
 - `PROBE_ONLY=A02,B06` (a subset; the stage-1 probes are named `S1-P06` and so on)
 - `PART=api|browser|all`
 - `KEEP=1`
