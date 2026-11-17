@@ -92,8 +92,38 @@ def derive_executives(candidates: list[dict]) -> dict:
     }
 
 
+def investor_members(candidates: list[dict]) -> list[str]:
+    """Names with an `own`/`filing` candidate or candidates from two or more distinct origins, by code point."""
+    by_name: dict[str, list[dict]] = {}
+    for c in candidates:
+        by_name.setdefault(c["value"].strip(), []).append(c)
+    return sorted(n for n, cs in by_name.items()
+                  if any(c.get("kind") in ("own", "filing") for c in cs) or len({c.get("origin") for c in cs}) >= 2)
+
+
+def derive_investors(candidates: list[dict]) -> dict:
+    """Stage 4 `investors`: the members' names in place of the selection rule; never contested."""
+    ranked = sorted(candidates, key=rank_key)
+    members = investor_members(ranked)
+    out_candidates = [dict(c, selected=c["value"].strip() in members) for c in ranked]
+    if not members:
+        return {"value": None, "status": "unknown", "true_from": None, "citations": [], "candidates": out_candidates,
+                "member_true_from": {}}
+    citations, member_tf = [], {}
+    for name in members:
+        mine = [c for c in ranked if c["value"].strip() == name]
+        citations += [{"url": c["url"], "excerpt": c["excerpt"], "provider": c["provider"]} for c in mine]
+        dated = [c["true_from"] for c in mine if c.get("true_from") is not None]
+        member_tf[name] = min(dated) if dated else None
+    tfs = list(member_tf.values())
+    return {"value": members, "status": "known", "true_from": None if any(t is None for t in tfs) else max(tfs),
+            "citations": citations, "candidates": out_candidates, "member_true_from": member_tf}
+
+
 def same_selected(field: str, a, b) -> bool:
     """Two selected values of a field are the same (executives: same members by title and name)."""
+    if field == "investors":
+        return sorted(x.strip() for x in a or []) == sorted(x.strip() for x in b or []) and (a is None) == (b is None)
     if field != "executives":
         if a is None or b is None:
             return a is None and b is None
@@ -103,10 +133,11 @@ def same_selected(field: str, a, b) -> bool:
 
 
 def derive_fields(candidates: list[dict]) -> dict:
-    """The seven fields from a build's candidates (each carrying `field`, and `title` for executives)."""
-    by_field = {f: [] for f in FIELDS + ("executives",)}
+    """The eight fields from a build's candidates (each carrying `field`, and `title` for executives)."""
+    by_field = {f: [] for f in FIELDS + ("executives", "investors")}
     for c in candidates:
         by_field.setdefault(c["field"], []).append({k: v for k, v in c.items() if k != "field"})
     out = {f: derive_field(by_field[f]) for f in FIELDS}
     out["executives"] = derive_executives(by_field["executives"])
+    out["investors"] = derive_investors(by_field["investors"])
     return out

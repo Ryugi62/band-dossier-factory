@@ -37,6 +37,10 @@ TITLE_PHRASES = {
     "cto": ("chief technology officer", "CTO"),
 }
 
+# Stage 4: investors.
+INVESTOR_PHRASES = ("investor", "investors", "led by", "backed by", "participated")
+INVESTOR_LAST_WORDS = ("Ventures", "Capital", "Partners", "Fund", "Investments", "Holdings", "Equity")
+
 HEADCOUNT_RANGES = ((1, 10, "1-10"), (11, 50, "11-50"), (51, 200, "51-200"), (201, 500, "201-500"),
                     (501, 1000, "501-1000"), (1001, 5000, "1001-5000"), (5001, 10000, "5001-10000"))
 HEADCOUNT_VALUES = tuple(r[2] for r in HEADCOUNT_RANGES) + ("10001+",)
@@ -433,6 +437,45 @@ def supported_title(excerpt: str, title: str, domain: str):
     if not values or any(v != values[0] for v in values):
         return None
     return values[0]
+
+
+def investor_names(excerpt: str, domain: str) -> list[str]:
+    """Every investor name `excerpt` supports (stage 4): rules 1-4 of A.2 and the investor-name rules."""
+    s = collapse_ws(excerpt)
+    if not s or len(split_line(s)) != 1 or not names_company(s, domain):
+        return []
+    if not any(find_phrase(s, p) for p in INVESTOR_PHRASES) or any(find_phrase(s, p) for p in NEGATING_PHRASES):
+        return []
+    masked = list(s)
+    for phrase in (company_name(domain),) + INVESTOR_PHRASES:
+        for a, b in find_phrase(s, phrase):
+            for k in range(a, b):
+                masked[k] = "\x00"
+    m = "".join(masked)
+    after = set()
+    if find_amounts(s):
+        for phrase in ("led by", "backed by"):
+            after |= {b + 1 for _, b in find_phrase(s, phrase) if s[b:b + 1] == " "}
+    names, i, n = [], 0, len(m)
+    while i < n:
+        end = _capitalised_at(m, i)
+        if end is None:
+            i += 1
+            continue
+        words, j = [(i, end)], end
+        while j < n and m[j] == " ":
+            nxt = _capitalised_at(m, j + 1)
+            if nxt is None:
+                break
+            words.append((j + 1, nxt))
+            j = nxt
+        last = s[words[-1][0]:words[-1][1]]
+        if (len(words) >= 2 and last in INVESTOR_LAST_WORDS) or i in after:
+            name = s[i:j]
+            if name not in names:
+                names.append(name)
+        i = j
+    return names
 
 
 def supports(excerpt: str, field: str, value, domain: str) -> bool:

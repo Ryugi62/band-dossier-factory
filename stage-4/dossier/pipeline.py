@@ -4,11 +4,11 @@ page that supports a value in its browser text, and turn those sentences into ca
 Order of calls, cheapest first:
 1. a Nimble research run asking for all six fields (decision D2), started at once;
 2. one lite search whose query is exactly the domain;
-3. when that search came back full (more pages may exist) or failed, two lite searches per field
-   (the six fields and the executives' titles): the company's name with all of the field's statement
-   phrases, and with its shortest phrase, so every page that supports a value is reached (a query
-   with the domain favours pages that merely mention it; a long query lets pages of other companies
-   crowd out a page that states the field once);
+3. when that search came back full (more pages may exist) or failed, lite searches by the company's
+   name: one per field (the six fields, the executives' titles and investors) with all of its statement
+   phrases, and one with the shortest phrase for the fields whose statements are often syndicated
+   across many sites (ceo, funding, executives, investors), so every page that supports a value is
+   reached; re-measured for stage 4 (decision D46): 0 of 301 supporting pages of the corpora missed;
 4. a rendered extract (3 units, decision D13) of every page whose known text supports a value:
    off the live endpoint a lite snippet is the first 300 characters of the page's prose, so a
    shorter snippet is the whole prose and a longer one shows its leading sentences;
@@ -26,7 +26,7 @@ import asyncio
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
-from . import pages, support
+from . import lineage, pages, support
 from .provider import Claim, Gateway, Meter, SearchHit
 
 SNIPPET_CHARS = 300
@@ -38,11 +38,9 @@ FIELD_QUERY_WORDS = {
     "headcount_range": "employees employs staff people headcount workforce",
     "funding_total": "raised funding investment invested",
     "executives": "CFO chief financial officer COO chief operating officer CTO chief technology officer",
+    "investors": "investor investors led by backed by participated",
 }
-FIELD_QUERY_SHORT = {
-    "legal_name": "registered name", "hq_city": "headquartered", "ceo": "CEO", "founded_year": "founded",
-    "headcount_range": "employees", "funding_total": "raised", "executives": "CFO",
-}
+FIELD_QUERY_SHORT = {"ceo": "CEO", "funding_total": "raised", "executives": "CFO", "investors": "backed by"}
 
 
 @dataclass
@@ -56,14 +54,17 @@ class Page:
 
 def supports_any(sentences: list[str], domain: str) -> bool:
     return any(True for _ in pages.supporting_sentences(sentences, domain)) or \
-        any(True for _ in pages.supporting_titles(sentences, domain))
+        any(True for _ in pages.supporting_titles(sentences, domain)) or \
+        any(True for _ in pages.supporting_investors(sentences, domain))
 
 
 def read_page(url: str, text: str, domain: str, retrieved_at: str) -> tuple[str | None, list[dict]]:
-    """(true_from, candidates) of a rendered page: one candidate per (field or title, value), first sentence."""
+    """(true_from, candidates) of a rendered page: one candidate per (field, title or investor, value), first
+    sentence; `kind` follows the stage-4 own-page rule; `origin` is filled in once the build knows it."""
     header, prose = pages.split_prose(text)
     values = pages.header_values(header)
-    base = {"url": url, "provider": "nimble", "kind": pages.page_kind(values, url, domain),
+    kind = lineage.own_rule(pages.page_kind(values, url, domain), values, url, domain)
+    base = {"url": url, "provider": "nimble", "kind": kind,
             "published_at": pages.page_published(values), "true_from": pages.page_true_from(values),
             "retrieved_at": retrieved_at}
     sentences = support.split_sentences(prose)
@@ -76,6 +77,10 @@ def read_page(url: str, text: str, domain: str, retrieved_at: str) -> tuple[str 
         if (title, name) not in seen:
             seen.add((title, name))
             out.append(dict(base, field="executives", title=title, value=name, excerpt=excerpt))
+    for name, excerpt in pages.supporting_investors(sentences, domain):
+        if ("investors", name) not in seen:
+            seen.add(("investors", name))
+            out.append(dict(base, field="investors", value=name, excerpt=excerpt))
     return base["true_from"], out
 
 
@@ -90,6 +95,10 @@ class Build:
         self.handled: set[str] = set()
         self.candidates: list[dict] = []
         self.versions: dict[str, str | None] = {}
+        # header lines of every page text this build obtained, by url key (renders reused for originals)
+        self.headers: dict[str, dict | None] = {}
+        self.rendered: dict[str, dict] = {}
+        self._fetching: dict[str, asyncio.Future] = {}
 
     # -------------------------------------------------------------- pages from searches
     def add_hits(self, hits: list[SearchHit]) -> None:
@@ -115,9 +124,14 @@ class Build:
             true_from, candidates = read_page(url, text, self.domain, self.build_time)
             self.versions[url] = true_from
             self.candidates.extend(candidates)
+            header = pages.header_values(pages.split_prose(text)[0])
+            self.headers[lineage.url_key(url)] = header
+            self.rendered[url] = header
 
     async def probe_then_render(self, url: str) -> None:
         text = await self.gateway.extract(self.meter, url)
+        if text is not None:
+            self.headers.setdefault(lineage.url_key(url), pages.header_values(pages.split_prose(text)[0]))
         if text is not None and supports_any(support.split_sentences(pages.split_prose(text)[1]), self.domain):
             await self.render(url)
 
@@ -132,6 +146,30 @@ class Build:
         if page.complete:
             self.handled.add(page.url)  # its whole prose is known and supports nothing
         return None
+
+    # -------------------------------------------------------------- origins (stage 4)
+    async def original_header(self, url: str) -> dict | None:
+        """Header lines of an original, from text this build already holds, else one plain extract (1 unit)."""
+        key = lineage.url_key(url)
+        if key in self.headers:
+            return self.headers[key]
+        if key not in self._fetching:
+            self._fetching[key] = asyncio.ensure_future(self._fetch_original(url))
+        return await self._fetching[key]
+
+    async def _fetch_original(self, url: str) -> dict | None:
+        text = await self.gateway.extract(self.meter, url)
+        header = pages.header_values(pages.split_prose(text)[0]) if text is not None else None
+        self.headers[lineage.url_key(url)] = header
+        return header
+
+    async def assign_origins(self) -> None:
+        urls = list(self.rendered)
+        found = await asyncio.gather(*(lineage.resolve_origin(self.rendered[u], u, self.domain, self.original_header)
+                                       for u in urls))
+        origin = dict(zip(urls, found))
+        for c in self.candidates:
+            c["origin"] = origin[c["url"]]
 
     def read_cited_page(self, claim_excerpts: list[str], url: str):
         self.handled.add(url)
@@ -163,6 +201,7 @@ class Build:
             readers += [asyncio.create_task(self.read_cited_page(ex, url))
                         for url, ex in cited.items() if url not in self.handled]
             await asyncio.gather(*readers)
+            await self.assign_origins()
         finally:
             for task in readers + [research]:
                 if not task.done():

@@ -1,6 +1,7 @@
 // The seventh field, `executives`, shown in its own markup: stage-2 test ids name only six fields (D30).
 import { h } from '../dom.js';
 import { formatDate, hostOf, kindLabel, providerLabel, statusLabel } from '../format.js';
+import { originsLine } from './investors.js';
 
 const TITLE_LABELS = { cfo: 'Chief financial officer', coo: 'Chief operating officer', cto: 'Chief technology officer' };
 
@@ -33,6 +34,7 @@ export function executivesCard(f) {
         h('span', { class: 'member-name' }, m.name))))
       : h('p', { class: 'field-value field-value-none' }, 'No executive named by a source'),
     timesLine(f),
+    originsLine(f),
     h('ol', { class: 'citations', 'aria-label': 'Sources for executives' },
       f.citations.map((c, i) => quote(c, `executives-citation-${i + 1}`))));
 }

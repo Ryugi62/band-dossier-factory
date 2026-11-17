@@ -4,6 +4,7 @@ import { h, message, replace } from '../dom.js';
 import { FIELDS, FIELD_LABELS, dataValue, formatDate, formatValue, hostOf, kindLabel, providerLabel } from '../format.js';
 import { notFound } from './dossier.js';
 import { executivesEvidence } from './executives.js';
+import { investorsEvidence } from './investors.js';
 
 function candidate(field, c, n) {
   return h('li', {
@@ -20,6 +21,7 @@ function candidate(field, c, n) {
     h('div', {}, h('dt', {}, 'Page kind'), h('dd', {}, kindLabel(c.kind))),
     h('div', {}, h('dt', {}, 'Published'), h('dd', {}, c.published_at ? formatDate(c.published_at) : 'No publication date')),
     h('div', {}, h('dt', {}, 'Served by'), h('dd', {}, providerLabel(c.provider))),
+    h('div', {}, h('dt', {}, 'Origin'), h('dd', {}, c.origin || '—')),
     h('div', {}, h('dt', {}, 'Holds from'), h('dd', {}, c.true_from ? formatDate(c.true_from) : 'No effective date')),
     h('div', {}, h('dt', {}, 'First learned'), h('dd', {}, c.learned_at ? formatDate(c.learned_at) : '—')),
     h('div', {}, h('dt', {}, 'Retrieved'), h('dd', {}, c.retrieved_at ? formatDate(c.retrieved_at) : '—'))));
@@ -64,4 +66,5 @@ export async function evidenceScreen(main, raw) {
     h('a', { href: `/dossiers/${encodeURIComponent(d.domain)}`, class: 'btn btn-link' }, '← Back to the dossier'));
   main.append(...FIELDS.map((f) => fieldSection(f, d.fields[f])));
   if (d.fields.executives) main.append(executivesEvidence(d.fields.executives));
+  if (d.fields.investors) main.append(investorsEvidence(d.fields.investors));
 }

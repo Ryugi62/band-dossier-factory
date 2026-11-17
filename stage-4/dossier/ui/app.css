@@ -168,6 +168,12 @@ input[type="text"], input[type="email"], input[type="password"], input[type="sea
 .member-name { font-size: 1.15rem; font-weight: 700; }
 .executives { grid-column: 1 / -1; }
 
+.origins-line { font-size: 0.85rem; margin: -4px 0 8px; color: var(--muted); }
+.origins-badge { display: inline-block; font-weight: 700; font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; }
+.is-corroborated .origins-badge { background: var(--known-bg); color: var(--known); }
+.is-single .origins-badge { background: var(--unknown-bg); color: var(--unknown); }
+.investors { grid-column: 1 / -1; }
+
 /* Evidence */
 .candidates { display: grid; gap: 10px; }
 .candidate { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfcfe; }

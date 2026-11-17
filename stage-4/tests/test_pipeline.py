@@ -78,7 +78,7 @@ class Pipeline(unittest.TestCase):
         gw = FakeGateway(hits, claims=[])
         build(gw)
         searches = [c for c in gw.calls if c[0] == "search"]
-        self.assertEqual(len(searches), 15)
+        self.assertEqual(len(searches), 13)
         self.assertEqual(sum(1 for c in searches if c[1] == D), 1)
 
     def test_claim_cited_page_is_read_even_if_claim_unsupported(self):

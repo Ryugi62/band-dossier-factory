@@ -120,6 +120,16 @@ def supporting_titles(sentences: list[str], domain: str):
                 yield title, name, excerpt
 
 
+def supporting_investors(sentences: list[str], domain: str):
+    """Yield (name, excerpt) for every investor name a sentence supports (stage 4)."""
+    for sentence in sentences:
+        excerpt = support.collapse_ws(sentence)
+        if not excerpt or len(excerpt) > MAX_EXCERPT or not support.names_company(excerpt, domain):
+            continue
+        for name in support.investor_names(excerpt, domain):
+            yield name, excerpt
+
+
 def contains_excerpt(prose: str, excerpt: str) -> bool:
     """True when `excerpt` is copied from `prose`, any whitespace run read as one space."""
     return support.collapse_ws(excerpt) in support.collapse_ws(prose)

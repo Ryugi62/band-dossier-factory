@@ -9,7 +9,7 @@ D = "lumen.test"
 def cand(field, value, url, true_from, kind="own", title=None, published=None):
     c = {"field": field, "value": value, "url": url, "excerpt": f"{value} at {url}", "provider": "nimble",
          "kind": kind, "published_at": published, "true_from": true_from, "retrieved_at": "2026-03-01T09:00:00+00:00",
-         "learned_at": "2026-03-01T09:00:00+00:00"}
+         "learned_at": "2026-03-01T09:00:00+00:00", "origin": url.split("/")[2]}
     if title:
         c["title"] = title
     return c
@@ -63,7 +63,7 @@ class History(unittest.TestCase):
         b0 = build(T0, [cand("legal_name", "Lumen S.A.", "https://lumen.test/about", "2020-05-01")])
         b1 = build(T1, [cand("legal_name", "Lumen S.A.", "https://lumen.test/about", "2026-03-01")])
         history = {"legal_name": [dict(new_entries([b0], 0)[0][1])]}
-        fields = view_fields(b1, history, 1)
+        fields = view_fields([b0, b1], 1, history)
         self.assertEqual((fields["legal_name"]["learned_at"], fields["legal_name"]["true_from"]), (T0, "2026-03-01"))
         self.assertIsNone(fields["ceo"]["learned_at"])
 

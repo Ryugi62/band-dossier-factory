@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import datetime as dt
 
+from . import corroboration
 from .selection import derive_fields, same_selected
 from .support import FIELDS
 
-SEVEN = FIELDS + ("executives",)
+ALL_FIELDS = FIELDS + ("executives", "investors")
 
 
 def instant(ts: str) -> dt.datetime:
@@ -32,16 +33,20 @@ def field_learned_at(history: dict, field: str, upto: int) -> str | None:
     return entries[-1]["learned_at"]
 
 
-def view_fields(build: dict | None, history: dict, upto: int) -> dict:
-    """The seven fields of a build as the API shows them, learned_at taken from history up to that build."""
-    derived = derive_fields(build["candidates"] if build else [])
+def view_fields(builds: list[dict], index: int | None, history: dict) -> dict:
+    """The eight fields of ready build `index` as the API shows them: learned_at from history up to that
+    build, origins and corroboration from the builds up to it (stage 4)."""
+    derived = derive_fields(builds[index]["candidates"] if index is not None else [])
+    upto = index if index is not None else -1
+    keys = corroboration.origin_keys(builds, index, ALL_FIELDS)
     out = {}
-    for f in SEVEN:
+    for f in ALL_FIELDS:
         d = derived[f]
         out[f] = {
             "value": d["value"], "status": d["status"], "true_from": d["true_from"],
             "learned_at": field_learned_at(history, f, upto) if d["value"] is not None else None,
             "citations": d["citations"], "candidates": [_public_candidate(c) for c in d["candidates"]],
+            **keys[f],
         }
     return out
 
@@ -49,7 +54,15 @@ def view_fields(build: dict | None, history: dict, upto: int) -> dict:
 # ---------------------------------------------------------------- history and feed
 
 def change_type(field: str, old: dict, new: dict) -> str:
-    """`correction` or `change` for a differing selected value (Changes and corrections; executives by title)."""
+    """`correction` or `change` for a differing selected value (Changes and corrections; executives by title,
+    investors by name)."""
+    if field == "investors":
+        old_names, new_names = set(old["value"] or []), set(new["value"] or [])
+        for name in old_names ^ new_names:
+            tf = (new.get("member_true_from") or {}).get(name)
+            if name not in new_names or tf is None or old["true_from"] is None or not tf <= old["true_from"]:
+                return "change"
+        return "correction"
     if field != "executives":
         if old["value"] is not None and new["value"] is not None and old["true_from"] is not None \
                 and new["true_from"] is not None and new["true_from"] <= old["true_from"]:
@@ -72,12 +85,12 @@ def new_entries(builds: list[dict], build_no: int) -> list[tuple[str, dict]]:
     earlier = [i for i in range(build_no) if builds[i]["outcome"] == "ready"]
     out = []
     if not earlier:
-        for f in SEVEN:
+        for f in ALL_FIELDS:
             if new[f]["value"] is not None:
                 out.append((f, _entry("initial", new[f], build["time"], build_no)))
         return out
     old = derive_fields(builds[earlier[-1]]["candidates"])
-    for f in SEVEN:
+    for f in ALL_FIELDS:
         if not same_selected(f, old[f]["value"], new[f]["value"]):
             out.append((f, _entry(change_type(f, old[f], new[f]), new[f], build["time"], build_no, old[f]["value"])))
     return out
@@ -147,4 +160,4 @@ def candidates_at(builds: list[dict], true_at: str, as_of: dt.datetime) -> list[
 def values_at(builds: list[dict], true_at: str, as_of: dt.datetime) -> dict:
     derived = derive_fields(candidates_at(builds, true_at, as_of))
     return {f: {"value": derived[f]["value"], "true_from": derived[f]["true_from"],
-                "citations": derived[f]["citations"]} for f in SEVEN}
+                "citations": derived[f]["citations"]} for f in ALL_FIELDS}
