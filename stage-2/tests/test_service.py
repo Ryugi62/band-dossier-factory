@@ -65,5 +65,50 @@ class ServiceRules(unittest.TestCase):
         self.assertNotIn("correct horse", str(snapshot))
 
 
+class StageOneImport(unittest.TestCase):
+    """Decision D16: a stage-1 export's citations become candidates (kind and published_at null)."""
+
+    def stage1_export(self):
+        cit = lambda url, ex: {"url": url, "excerpt": ex, "provider": "nimble"}  # noqa: E731
+        empty = {"value": None, "status": "unknown", "citations": []}
+        fields = {f: dict(empty) for f in ("legal_name", "hq_city", "ceo", "founded_year", "headcount_range",
+                                           "funding_total")}
+        fields["hq_city"] = {"value": "Lisbon", "status": "known", "citations": [
+            cit("https://b.test/x", "Acme is based in Lisbon."), cit("https://a.test/y", "Acme is headquartered in Lisbon."),
+            cit("https://c.test/z", "Acme likes Lisbon.")]}
+        return {"track": "dossier", "format_version": 1, "state": {
+            "users": [{"id": "u_ada", "email": "ada@example.com", "display_name": "Ada",
+                       "password_hash": "scrypt$16384$8$1$00$00"}],
+            "tokens": [{"token": "tok-1", "user_id": "u_ada"}],
+            "dossiers": [{"id": "d_1", "domain": "acme.test", "state": "ready", "fields": fields,
+                          "researched_at": "2026-03-01T09:00:00+00:00", "spent_units": 30}],
+            "idempotent": [{"user_id": "u_ada", "method": "POST", "path": "/dossiers", "key": "k",
+                            "request": canonical({"domain": "acme.test"}),
+                            "response": {"dossier_id": "d_1", "domain": "acme.test", "state": "building"}}]}}
+
+    def test_candidates_rebuilt_from_citations(self):
+        svc = Service(FakeGateway({}, claims=[]))
+        svc.import_state(self.stage1_export())
+        view = svc.read("acme.test")
+        hq = view["fields"]["hq_city"]
+        self.assertEqual(hq["status"], "known")
+        self.assertEqual([c["url"] for c in hq["candidates"]], ["https://a.test/y", "https://b.test/x"])
+        self.assertTrue(all(c["kind"] is None and c["published_at"] is None
+                            and c["retrieved_at"] == "2026-03-01T09:00:00+00:00" for c in hq["candidates"]))
+        self.assertEqual(hq["candidates"][0]["selected"], True)
+        self.assertEqual(view["fields"]["ceo"], {"value": None, "status": "unknown", "citations": [], "candidates": []})
+        self.assertEqual(svc.authenticate("Bearer tok-1"), "u_ada")
+        status, body = svc.idempotent("u_ada", "POST", "/dossiers", "k", canonical({"domain": "acme.test"}),
+                                      lambda: (500, {}))
+        self.assertEqual((status, body["dossier_id"]), (200, "d_1"))
+
+    def test_stage2_export_round_trip_keeps_candidates(self):
+        svc = Service(FakeGateway({}, claims=[]))
+        svc.import_state(self.stage1_export())
+        before = svc.read("acme.test")
+        svc.import_state(svc.export())
+        self.assertEqual(svc.read("acme.test"), before)
+
+
 if __name__ == "__main__":
     unittest.main()

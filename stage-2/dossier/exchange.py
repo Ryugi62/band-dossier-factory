@@ -1,8 +1,9 @@
 """Export / import (§10): the envelope and strict validation of an imported state."""
 from __future__ import annotations
 
-from . import accounts, domains, errors
+from . import accounts, domains, errors, selection, support
 from .clock import parse_rfc3339
+from .pages import KINDS
 from .store import Dossier, Store, User
 from .support import FIELDS, HEADCOUNT_VALUES
 
@@ -95,28 +96,52 @@ def _parse_dossier(d) -> Dossier:
     _need(_is_int(spent) and spent >= 0, "spent_units")
     raw_fields = d.get("fields")
     _need(isinstance(raw_fields, dict) and set(raw_fields) == set(FIELDS), "fields")
-    fields = {f: _parse_field(f, raw_fields[f]) for f in FIELDS}
+    fields = {f: _parse_field(f, raw_fields[f], domain, ra) for f in FIELDS}
     return Dossier(id=_str(d, "id", 64), domain=domain, state=state, fields=fields, researched_at=ra,
                    spent_units=spent, settled_state=state, settled_spent=spent)
 
 
-def _parse_field(name: str, f) -> dict:
-    _need(isinstance(f, dict) and isinstance(f.get("citations"), list), f"field {name}")
-    value = f.get("value")
-    if value is None:
-        _need(f["citations"] == [], f"field {name} citations")
-        return {"value": None, "citations": []}
+def _parse_value(name: str, value) -> None:
     if name in ("founded_year", "funding_total"):
         _need(_is_int(value), f"field {name} value")
     else:
-        _need(isinstance(value, str) and value, f"field {name} value")
+        _need(isinstance(value, str) and value.strip() != "", f"field {name} value")
     if name == "headcount_range":
         _need(value in HEADCOUNT_VALUES, "headcount_range value")
-    cits = []
+
+
+def _parse_field(name: str, f, domain: str, researched_at: str | None) -> dict:
+    """A stage-2 field (restored from its candidates) or a stage-1 field (candidates rebuilt, decision D16)."""
+    _need(isinstance(f, dict), f"field {name}")
+    if "candidates" in f:
+        _need(isinstance(f["candidates"], list), f"field {name} candidates")
+        return selection.derive_field([_parse_candidate(name, c) for c in f["candidates"]])
+    _need(isinstance(f.get("citations"), list), f"field {name}")
+    value = f.get("value")
+    if value is None:
+        _need(f["citations"] == [], f"field {name} citations")
+        return selection.derive_field([])
+    _parse_value(name, value)
+    candidates, seen = [], set()
     for c in f["citations"]:
         _need(isinstance(c, dict), "citation")
-        _need(c.get("provider") in ("nimble", "tavily"), "citation provider")
-        excerpt = _str(c, "excerpt", 500)
-        cits.append({"url": _str(c, "url"), "excerpt": excerpt, "provider": c["provider"]})
-    _need(len(cits) >= 1, f"field {name} without citations")
-    return {"value": value, "citations": cits}
+        _need(c.get("provider") in selection.PROVIDER_ORDER, "citation provider")
+        url, excerpt = _str(c, "url"), _str(c, "excerpt", 500)
+        if not support.supports(excerpt, name, value, domain) or (url, c["provider"]) in seen:
+            continue
+        seen.add((url, c["provider"]))
+        candidates.append({"value": value, "url": url, "excerpt": excerpt, "provider": c["provider"],
+                           "kind": None, "published_at": None, "retrieved_at": researched_at})
+    return selection.derive_field(candidates)
+
+
+def _parse_candidate(name: str, c) -> dict:
+    _need(isinstance(c, dict), "candidate")
+    _parse_value(name, c.get("value"))
+    _need(c.get("provider") in selection.PROVIDER_ORDER, "candidate provider")
+    _need(c.get("kind") is None or c.get("kind") in KINDS, "candidate kind")
+    for key in ("published_at", "retrieved_at"):
+        v = c.get(key)
+        _need(v is None or (isinstance(v, str) and parse_rfc3339(v) is not None), f"candidate {key}")
+    return {"value": c["value"], "url": _str(c, "url"), "excerpt": _str(c, "excerpt", 500), "provider": c["provider"],
+            "kind": c.get("kind"), "published_at": c.get("published_at"), "retrieved_at": c.get("retrieved_at")}
