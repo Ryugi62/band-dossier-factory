@@ -202,7 +202,7 @@ class Service:
 
         meter = Meter(on_charge, deadline=Deadline(self.gateway.live))
         try:
-            fields = await asyncio.wait_for(run_build(self.gateway, dossier.domain, meter), BUILD_HARD_LIMIT)
+            fields = await asyncio.wait_for(run_build(self.gateway, dossier.domain, meter, build_time), BUILD_HARD_LIMIT)
         except asyncio.CancelledError:
             raise
         except asyncio.TimeoutError:

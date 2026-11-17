@@ -21,8 +21,12 @@ class User:
     password_hash: str
 
 
+def empty_field() -> dict:
+    return {"value": None, "status": "unknown", "citations": [], "candidates": []}
+
+
 def empty_fields() -> dict:
-    return {f: {"value": None, "citations": []} for f in FIELDS}
+    return {f: empty_field() for f in FIELDS}
 
 
 @dataclass
@@ -58,9 +62,9 @@ class Dossier:
 
 
 def field_view(stored: dict) -> dict:
-    value = stored["value"]
-    return {"value": value, "status": "unknown" if value is None else "known",
-            "citations": [dict(c) for c in stored["citations"]] if value is not None else []}
+    return {"value": stored["value"], "status": stored["status"],
+            "citations": [dict(c) for c in stored["citations"]],
+            "candidates": [dict(c) for c in stored["candidates"]]}
 
 
 class Store:
@@ -131,8 +135,7 @@ def _export_dossier(d: Dossier) -> dict:
         "id": d.id,
         "domain": d.domain,
         "state": d.settled_state if building else d.state,
-        "fields": {f: {"value": d.fields[f]["value"], "citations": [dict(c) for c in d.fields[f]["citations"]]}
-                   for f in FIELDS},
+        "fields": {f: field_view(d.fields[f]) for f in FIELDS},
         "researched_at": d.researched_at,
         "spent_units": d.settled_spent if building else d.spent_units,
     }
