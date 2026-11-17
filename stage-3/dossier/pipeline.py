@@ -4,9 +4,11 @@ page that supports a value in its browser text, and turn those sentences into ca
 Order of calls, cheapest first:
 1. a Nimble research run asking for all six fields (decision D2), started at once;
 2. one lite search whose query is exactly the domain;
-3. when that search came back full (more pages may exist) or failed, one lite search per field,
-   the company's name plus that field's statement phrases, so every page that supports a value is
-   reached (a query with the domain favours pages that merely mention the domain);
+3. when that search came back full (more pages may exist) or failed, two lite searches per field
+   (the six fields and the executives' titles): the company's name with all of the field's statement
+   phrases, and with its shortest phrase, so every page that supports a value is reached (a query
+   with the domain favours pages that merely mention it; a long query lets pages of other companies
+   crowd out a page that states the field once);
 4. a rendered extract (3 units, decision D13) of every page whose known text supports a value:
    off the live endpoint a lite snippet is the first 300 characters of the page's prose, so a
    shorter snippet is the whole prose and a longer one shows its leading sentences;
@@ -14,7 +16,9 @@ Order of calls, cheapest first:
    rendered extract only when that text supports a value;
 6. the same for every page a research claim cites (stage-2 Candidates), once the run answers.
 Candidates come only from rendered text: one per (url, provider, value) of a field, the first
-supporting sentence being its excerpt (decision D19).
+supporting sentence being its excerpt (decision D19). Stage 3 adds the executives' titles (one
+candidate per (url, provider, title, name)) and each page's `true_from`; every rendered page is a
+page version of the build, with or without candidates.
 """
 from __future__ import annotations
 
@@ -22,7 +26,7 @@ import asyncio
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
-from . import pages, selection, support
+from . import pages, support
 from .provider import Claim, Gateway, Meter, SearchHit
 
 SNIPPET_CHARS = 300
@@ -33,6 +37,11 @@ FIELD_QUERY_WORDS = {
     "founded_year": "founded established incorporated founding",
     "headcount_range": "employees employs staff people headcount workforce",
     "funding_total": "raised funding investment invested",
+    "executives": "CFO chief financial officer COO chief operating officer CTO chief technology officer",
+}
+FIELD_QUERY_SHORT = {
+    "legal_name": "registered name", "hq_city": "headquartered", "ceo": "CEO", "founded_year": "founded",
+    "headcount_range": "employees", "funding_total": "raised", "executives": "CFO",
 }
 
 
@@ -46,22 +55,32 @@ class Page:
 
 
 def supports_any(sentences: list[str], domain: str) -> bool:
-    return any(True for _ in pages.supporting_sentences(sentences, domain))
+    return any(True for _ in pages.supporting_sentences(sentences, domain)) or \
+        any(True for _ in pages.supporting_titles(sentences, domain))
+
+
+def read_page(url: str, text: str, domain: str, retrieved_at: str) -> tuple[str | None, list[dict]]:
+    """(true_from, candidates) of a rendered page: one candidate per (field or title, value), first sentence."""
+    header, prose = pages.split_prose(text)
+    values = pages.header_values(header)
+    base = {"url": url, "provider": "nimble", "kind": pages.page_kind(values, url, domain),
+            "published_at": pages.page_published(values), "true_from": pages.page_true_from(values),
+            "retrieved_at": retrieved_at}
+    sentences = support.split_sentences(prose)
+    out, seen = [], set()
+    for field, value, excerpt in pages.supporting_sentences(sentences, domain):
+        if (field, repr(value)) not in seen:
+            seen.add((field, repr(value)))
+            out.append(dict(base, field=field, value=value, excerpt=excerpt))
+    for title, name, excerpt in pages.supporting_titles(sentences, domain):
+        if (title, name) not in seen:
+            seen.add((title, name))
+            out.append(dict(base, field="executives", title=title, value=name, excerpt=excerpt))
+    return base["true_from"], out
 
 
 def candidates_from_text(url: str, text: str, domain: str, retrieved_at: str) -> list[dict]:
-    """One candidate per (field, value) the page's rendered text supports, from its first supporting sentence."""
-    header, prose = pages.split_prose(text)
-    values = pages.header_values(header)
-    kind, published = pages.page_kind(values, url, domain), pages.page_published(values)
-    out, seen = [], set()
-    for field, value, excerpt in pages.supporting_sentences(support.split_sentences(prose), domain):
-        if (field, repr(value)) in seen:
-            continue
-        seen.add((field, repr(value)))
-        out.append({"field": field, "value": value, "url": url, "excerpt": excerpt, "provider": "nimble",
-                    "kind": kind, "published_at": published, "retrieved_at": retrieved_at})
-    return out
+    return read_page(url, text, domain, retrieved_at)[1]
 
 
 class Build:
@@ -70,6 +89,7 @@ class Build:
         self.pages: dict[str, Page] = {}
         self.handled: set[str] = set()
         self.candidates: list[dict] = []
+        self.versions: dict[str, str | None] = {}
 
     # -------------------------------------------------------------- pages from searches
     def add_hits(self, hits: list[SearchHit]) -> None:
@@ -92,7 +112,9 @@ class Build:
     async def render(self, url: str) -> None:
         text = await self.gateway.extract(self.meter, url, render=True)
         if text is not None:
-            self.candidates.extend(candidates_from_text(url, text, self.domain, self.build_time))
+            true_from, candidates = read_page(url, text, self.domain, self.build_time)
+            self.versions[url] = true_from
+            self.candidates.extend(candidates)
 
     async def probe_then_render(self, url: str) -> None:
         text = await self.gateway.extract(self.meter, url)
@@ -118,7 +140,7 @@ class Build:
         return self.probe_then_render(url)
 
     # -------------------------------------------------------------- the build
-    async def run(self) -> dict | None:
+    async def run(self) -> tuple[list[dict], dict] | None:
         research = asyncio.create_task(self.gateway.research(self.meter, self.domain))
         readers = []
         try:
@@ -127,8 +149,9 @@ class Build:
                 self.add_hits(hits)
             if hits is None or len(hits) >= 10 or self.gateway.live:
                 name = support.company_name(self.domain)
-                more = await asyncio.gather(*(self.gateway.search(self.meter, f"{name} {FIELD_QUERY_WORDS[f]}")
-                                              for f in support.FIELDS))
+                queries = [f"{name} {w}" for w in FIELD_QUERY_WORDS.values()]
+                queries += [f"{name} {w}" for w in FIELD_QUERY_SHORT.values()]
+                more = await asyncio.gather(*(self.gateway.search(self.meter, q) for q in queries))
                 for result in more:
                     if result:
                         self.add_hits(result)
@@ -146,12 +169,9 @@ class Build:
                     task.cancel()
         if not self.meter.succeeded:
             return None
-        by_field = {}
-        for c in self.candidates:
-            by_field.setdefault(c["field"], []).append({k: v for k, v in c.items() if k != "field"})
-        return selection.derive_fields(by_field)
+        return self.candidates, self.versions
 
 
-async def run_build(gateway: Gateway, domain: str, meter: Meter, build_time: str) -> dict | None:
-    """The decided fields with their candidates, or None when no provider call succeeded (the build failed)."""
+async def run_build(gateway: Gateway, domain: str, meter: Meter, build_time: str) -> tuple[list[dict], dict] | None:
+    """(candidates, page versions {url: true_from}), or None when no provider call succeeded (the build failed)."""
     return await Build(gateway, domain, meter, build_time).run()

@@ -6,6 +6,7 @@ import { h, message, replace } from '../dom.js';
 import {
   FIELDS, FIELD_LABELS, dataValue, formatTimestamp, formatValue, hostOf, providerLabel, statusLabel, unitsLabel,
 } from '../format.js';
+import { executivesCard, timesLine } from './executives.js';
 
 const POLL_MS = 1000;
 
@@ -36,6 +37,7 @@ function fieldCard(field, f) {
     known
       ? h('p', { class: 'field-value', testid: `field-value-${field}`, 'data-value': dataValue(f.value) }, formatValue(field, f.value))
       : h('p', { class: 'field-value field-value-none' }, 'No supported value found'),
+    timesLine(f),
     h('ol', { class: 'citations', testid: `field-citations-${field}`, 'aria-label': `Sources for ${FIELD_LABELS[field]}` },
       f.citations.map((c, i) => citation(field, c, i + 1))));
 }
@@ -135,10 +137,10 @@ export function dossierScreen(main, raw) {
           'All evidence')));
     if (d.state === 'failed' && !d.researched_at) {
       replace(fields, message('error', null, 'The research could not reach any source. Refresh to try again.'),
-        FIELDS.map((f) => fieldCard(f, d.fields[f])));
+        FIELDS.map((f) => fieldCard(f, d.fields[f])), executivesCard(d.fields.executives));
       return;
     }
-    replace(fields, FIELDS.map((f) => fieldCard(f, d.fields[f])));
+    replace(fields, FIELDS.map((f) => fieldCard(f, d.fields[f])), executivesCard(d.fields.executives));
   }
 
   load();

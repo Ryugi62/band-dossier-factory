@@ -161,6 +161,13 @@ input[type="text"], input[type="email"], input[type="password"], input[type="sea
 .excerpt p { margin: 0; }
 .citation-source { font-size: 0.85rem; margin: 0; }
 
+.times { font-size: 0.85rem; margin: -4px 0 8px; }
+.members { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 4px; }
+.member { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.member-title { font-size: 0.85rem; min-width: 12rem; }
+.member-name { font-size: 1.15rem; font-weight: 700; }
+.executives { grid-column: 1 / -1; }
+
 /* Evidence */
 .candidates { display: grid; gap: 10px; }
 .candidate { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfcfe; }

@@ -3,6 +3,7 @@ import unittest
 
 from dossier.pipeline import candidates_from_text, run_build
 from dossier.provider import Claim, Meter, SearchHit
+from dossier.selection import derive_fields
 
 D = "acme.test"
 T = "2026-03-01T09:00:00+00:00"
@@ -43,7 +44,8 @@ class FakeGateway:
 
 def build(gateway):
     meter = Meter(lambda cost: None)
-    return asyncio.run(run_build(gateway, D, meter, T)), meter
+    result = asyncio.run(run_build(gateway, D, meter, T))
+    return (derive_fields(result[0]) if result else None), meter
 
 
 class Pipeline(unittest.TestCase):
@@ -76,7 +78,7 @@ class Pipeline(unittest.TestCase):
         gw = FakeGateway(hits, claims=[])
         build(gw)
         searches = [c for c in gw.calls if c[0] == "search"]
-        self.assertEqual(len(searches), 7)
+        self.assertEqual(len(searches), 15)
         self.assertEqual(sum(1 for c in searches if c[1] == D), 1)
 
     def test_claim_cited_page_is_read_even_if_claim_unsupported(self):

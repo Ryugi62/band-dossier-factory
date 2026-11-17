@@ -67,6 +67,23 @@ def page_published(header: dict) -> str | None:
         return None
 
 
+_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+def page_true_from(header: dict) -> str | None:
+    """Stage 3: a valid `Effective` date, else the UTC date of `Published`, else None."""
+    effective = header.get("Effective")
+    if effective and _DATE.fullmatch(effective):
+        try:
+            return dt.date.fromisoformat(effective).isoformat()
+        except ValueError:
+            pass
+    published = page_published(header)
+    if published is None:
+        return None
+    return dt.datetime.fromisoformat(published).astimezone(dt.timezone.utc).date().isoformat()
+
+
 def complete_sentences(prose: str, truncated: bool) -> list[str]:
     """Sentences of `prose`; a text cut short loses its last, possibly partial, sentence."""
     if not truncated:
@@ -89,6 +106,18 @@ def supporting_sentences(sentences: list[str], domain: str):
             value = support.supported_value(excerpt, field, domain)
             if value is not None:
                 yield field, value, excerpt
+
+
+def supporting_titles(sentences: list[str], domain: str):
+    """Yield (title, name, excerpt) for every sentence that supports an executive title (stage 3)."""
+    for sentence in sentences:
+        excerpt = support.collapse_ws(sentence)
+        if not excerpt or len(excerpt) > MAX_EXCERPT or not support.names_company(excerpt, domain):
+            continue
+        for title in support.TITLES:
+            name = support.supported_title(excerpt, title, domain)
+            if name is not None:
+                yield title, name, excerpt
 
 
 def contains_excerpt(prose: str, excerpt: str) -> bool:

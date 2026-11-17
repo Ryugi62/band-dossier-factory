@@ -29,6 +29,14 @@ LEGAL_SUFFIXES = ("Inc.", "Corp.", "LLC", "LLP", "L.P.", "Ltd", "Limited", "Pty 
                   "S.r.l.", "S.p.A.", "s.r.o.", "a.s.", "K.K.")
 _DOT_SUFFIXES = tuple(s for s in LEGAL_SUFFIXES if s.endswith("."))
 
+# Stage 3: the executives' titles, each an Appendix A field with the format and normalisation of `ceo`.
+TITLES = ("cfo", "coo", "cto")
+TITLE_PHRASES = {
+    "cfo": ("chief financial officer", "CFO"),
+    "coo": ("chief operating officer", "COO"),
+    "cto": ("chief technology officer", "CTO"),
+}
+
 HEADCOUNT_RANGES = ((1, 10, "1-10"), (11, 50, "11-50"), (51, 200, "51-200"), (201, 500, "201-500"),
                     (501, 1000, "501-1000"), (1001, 5000, "1001-5000"), (5001, 10000, "5001-10000"))
 HEADCOUNT_VALUES = tuple(r[2] for r in HEADCOUNT_RANGES) + ("10001+",)
@@ -342,8 +350,13 @@ def _place_run(s: str, start: int):
 
 
 def values_ceo(s: str, domain: str) -> list[str]:
+    return person_names(s, domain, STATEMENT_PHRASES["ceo"])
+
+
+def person_names(s: str, domain: str, phrases) -> list[str]:
+    """Runs of two or three capitalised words, the company's name and `phrases` taken out first."""
     masked = list(s)
-    for phrase in (company_name(domain),) + STATEMENT_PHRASES["ceo"]:
+    for phrase in (company_name(domain),) + tuple(phrases):
         for a, b in find_phrase(s, phrase):
             for k in range(a, b):
                 masked[k] = "\x00"
@@ -403,6 +416,20 @@ def supported_value(excerpt: str, field: str, domain: str):
     if any(find_phrase(s, p) for p in NEGATING_PHRASES):
         return None
     values = _VALUES[field](s, domain)
+    if not values or any(v != values[0] for v in values):
+        return None
+    return values[0]
+
+
+def supported_title(excerpt: str, title: str, domain: str):
+    """The person `excerpt` supports for an executive `title` (stage 3), or None."""
+    s = collapse_ws(excerpt)
+    if not s or len(split_line(s)) != 1 or not names_company(s, domain):
+        return None
+    phrases = TITLE_PHRASES[title]
+    if not any(find_phrase(s, p) for p in phrases) or any(find_phrase(s, p) for p in NEGATING_PHRASES):
+        return None
+    values = person_names(s, domain, phrases)
     if not values or any(v != values[0] for v in values):
         return None
     return values[0]
