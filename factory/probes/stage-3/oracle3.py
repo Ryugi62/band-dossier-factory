@@ -147,11 +147,14 @@ def versions_known(builds):
                 vs.clear()
             else:
                 vs[:] = [v for v in vs if not (v[0] is not None and v[0] >= tf)]
-                # the latest earlier version it does not replace stops holding on tf
-                if vs:
-                    last = vs[-1]
+                # the latest earlier dated version it does not replace stops holding on tf
+                # (D33: a null-dated version holds on no date and is never the one that stops)
+                dated = [i for i, v in enumerate(vs) if v[0] is not None]
+                if dated:
+                    i = dated[-1]
+                    last = vs[i]
                     if last[1] is None or last[1] > tf:
-                        vs[-1] = (last[0], tf, last[2])
+                        vs[i] = (last[0], tf, last[2])
             vs.append((tf, None, cands))
     return out
 
