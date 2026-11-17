@@ -1,7 +1,7 @@
 # Plan — stage 3 (track dossier)
 
-Started 2026-11-17T08:03Z. Result folder: `<workdir>/result-s1/stage-3/` (copy of the closed, unchanged `stage-2/` at 3e32ac8, extended). `stage-1/` (9166a28) and `stage-2/` (3e32ac8) must stay byte-identical.
-Specification: `<workdir>/sf-2026/challenges/dossier/spec/stage-3.md` (pasted in full into every handoff, with the carried-forward stage-1 and stage-2 text).
+Started 2026-11-17T08:03Z. Result folder: `/Users/ryugi62/band-work/result-s1/stage-3/` (copy of the closed, unchanged `stage-2/` at 3e32ac8, extended). `stage-1/` (9166a28) and `stage-2/` (3e32ac8) must stay byte-identical.
+Specification: `/Users/ryugi62/band-work/sf-2026/challenges/dossier/spec/stage-3.md` (pasted in full into every handoff, with the carried-forward stage-1 and stage-2 text).
 
 | # | Item | Scope |
 |---|---|---|

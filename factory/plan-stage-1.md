@@ -1,7 +1,7 @@
 # Plan — stage 1 (track dossier)
 
-Started 2026-11-17T04:58Z. Result folder: `<workdir>/result-s1/stage-1/`.
-Specification: `<workdir>/sf-2026/challenges/dossier/spec/stage-1.md` (pasted in full into every handoff).
+Started 2026-11-17T04:58Z. Result folder: `/Users/ryugi62/band-work/result-s1/stage-1/`.
+Specification: `/Users/ryugi62/band-work/sf-2026/challenges/dossier/spec/stage-1.md` (pasted in full into every handoff).
 
 Work items (one commit each, builder, in this order; ledger row IDs are assigned by the verifier):
 

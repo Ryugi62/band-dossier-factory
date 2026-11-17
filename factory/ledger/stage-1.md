@@ -15,7 +15,7 @@ It builds `stage-1/` from its `Dockerfile` and the mock web from
 access), mounts the sample corpus plus the verifier corpus (`factory/probes/stage-1/corpus/`),
 runs `run.py` from a `python:3.12-slim` container on that network, prints one line per probe and
 `TOTAL: n passed, m failed`, and exits non-zero on any failure. Environment overrides:
-`SF_ROOT` (default `<workdir>/sf-2026`), `PROBE_ONLY=P06,P11` (subset),
+`SF_ROOT` (default `/Users/ryugi62/band-work/sf-2026`), `PROBE_ONLY=P06,P11` (subset),
 `KEEP=1` (leave containers up).
 
 Against an already running service (no docker orchestration):

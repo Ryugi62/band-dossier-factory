@@ -1,7 +1,7 @@
 # Plan — stage 2 (track dossier)
 
-Started 2026-11-17T07:01Z. Result folder: `<workdir>/result-s1/stage-2/` (copy of the closed, unchanged `stage-1/` at 9166a28, extended).
-Specification: `<workdir>/sf-2026/challenges/dossier/spec/stage-2.md` (pasted in full into every handoff, with the carried-forward stage-1 text).
+Started 2026-11-17T07:01Z. Result folder: `/Users/ryugi62/band-work/result-s1/stage-2/` (copy of the closed, unchanged `stage-1/` at 9166a28, extended).
+Specification: `/Users/ryugi62/band-work/sf-2026/challenges/dossier/spec/stage-2.md` (pasted in full into every handoff, with the carried-forward stage-1 text).
 
 | # | Item | Scope |
 |---|---|---|

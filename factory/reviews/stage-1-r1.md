@@ -7,7 +7,7 @@
 ## 1. Fresh clone, clean build
 
 ```sh
-git clone <workdir>/result-s1 scratch/verifier/r1-clone
+git clone /Users/ryugi62/band-work/result-s1 scratch/verifier/r1-clone
 git -C scratch/verifier/r1-clone checkout f72df407766174680d78a792ea83081f7ba24041
 ```
 
