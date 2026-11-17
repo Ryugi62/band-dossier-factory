@@ -49,6 +49,17 @@ def _select4(cands):
 
 
 O3.select = _select4
+_norm_members3 = O3.norm_members
+
+
+def _norm_members4(v):
+    # investors values are lists of names (strings); executives values are lists of {title, name}
+    if isinstance(v, list) and v and isinstance(v[0], str):
+        return [O4.norm(x) for x in v]
+    return _norm_members3(v)
+
+
+O3.norm_members = _norm_members4
 
 
 def tsp(**kw):
@@ -658,7 +669,7 @@ def x1(c):
     c.wait(ada, ORBIT, timeout=40)
     q = urllib.parse.quote
     paths = [f"/batches/{bid}", f"/dossiers/{ORBIT}", f"/dossiers/{LATTICE}", f"/dossiers/{ORBIT}/history", "/changes?limit=200",
-             f"/dossiers/{ORBIT}?as_of={q(T0)}", f"/dossiers/{ORBIT}/values?true_at=2025-12-01"]
+             f"/dossiers/{ORBIT}?as_of={q(T0)}", f"/dossiers/{ORBIT}/values?true_at=2025-12-01&as_of={q(tsp(days=1))}"]
     before = {p: c.req("GET", p, token=ada).body for p in paths}
     x = c.req("GET", "/_test/export")
     if not c.expect(x, 200, what="export"):
