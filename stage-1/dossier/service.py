@@ -12,10 +12,12 @@ import logging
 from . import accounts, domains, errors, exchange
 from .clock import Clock, format_ts, parse_rfc3339
 from .pipeline import run_build
-from .provider import Gateway, Meter
+from .provider import Deadline, Gateway, Meter
 from .store import Dossier, Store, User
 
 log = logging.getLogger("dossier.service")
+# Last resort behind the per-call deadline of provider.Deadline: a build never stays `building` past 300 s.
+BUILD_HARD_LIMIT = 298.0
 
 
 def canonical(value) -> str:
@@ -198,11 +200,14 @@ class Service:
             if self._current(dossier, generation):
                 dossier.spent_units += cost
 
-        meter = Meter(on_charge)
+        meter = Meter(on_charge, deadline=Deadline(self.gateway.live))
         try:
-            fields = await run_build(self.gateway, dossier.domain, meter)
+            fields = await asyncio.wait_for(run_build(self.gateway, dossier.domain, meter), BUILD_HARD_LIMIT)
         except asyncio.CancelledError:
             raise
+        except asyncio.TimeoutError:
+            log.error("build of %s hit the hard limit", dossier.domain)
+            fields = None
         except Exception:  # noqa: BLE001 - a build never takes the service down
             log.exception("build of %s crashed", dossier.domain)
             fields = None
