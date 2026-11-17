@@ -1,0 +1,256 @@
+{
+ "domain": "lumen-atlas.test",
+ "names": [
+  "Lumen Atlas"
+ ],
+ "pages": [
+  {
+   "url": "https://lumen-atlas.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2020-05-02T00:00:00Z",
+   "true_from": "2020-05-01",
+   "title": "About Lumen Atlas",
+   "text": "Lumen Atlas builds solar-powered street lights.\nThe registered name of the company is Lumen Atlas S.A.\nLumen Atlas is headquartered in Porto. Lumen Atlas was founded in 2019.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lumen-atlas.test"
+   }
+  },
+  {
+   "url": "https://lumen-atlas.test/about",
+   "kind": "own",
+   "epochs": [
+    3,
+    4
+   ],
+   "searchable": true,
+   "published_at": "2026-03-01T00:00:00Z",
+   "true_from": "2026-03-01",
+   "title": "About Lumen Atlas",
+   "text": "Lumen Atlas builds solar-powered street lights.\nThe registered name of the company is Lumen Atlas S.A.\nLumen Atlas is headquartered in Braga. Lumen Atlas was founded in 2019.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lumen-atlas.test"
+   }
+  },
+  {
+   "url": "https://lumen-atlas.test/team",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2021-01-10T00:00:00Z",
+   "true_from": "2021-01-01",
+   "title": "Team | Lumen Atlas",
+   "text": "Lumen Atlas CEO: Rita Gomes.\nLumen Atlas CFO: Ana Silva.\nBruno Costa is the chief technology officer of Lumen Atlas.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lumen-atlas.test"
+   }
+  },
+  {
+   "url": "https://lumen-atlas.test/team",
+   "kind": "own",
+   "epochs": [
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-02-02T00:00:00Z",
+   "true_from": "2026-02-01",
+   "title": "Team | Lumen Atlas",
+   "text": "Lumen Atlas CEO: Tiago Neves.\nLumen Atlas CFO: Ana Silva.\nBruno Costa is the chief technology officer of Lumen Atlas.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lumen-atlas.test"
+   }
+  },
+  {
+   "url": "https://lumen-atlas.test/team",
+   "kind": "own",
+   "epochs": [
+    2,
+    3,
+    4
+   ],
+   "searchable": true,
+   "published_at": "2026-02-20T00:00:00Z",
+   "true_from": "2021-01-01",
+   "title": "Team | Lumen Atlas",
+   "text": "Lumen Atlas CEO: Rita Gomes.\nLumen Atlas CFO: Ana Silva.\nBruna Costa is the chief technology officer of Lumen Atlas.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lumen-atlas.test"
+   }
+  },
+  {
+   "url": "https://solarwire.test/2025/lumen-atlas-seed",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2025-06-10T08:00:00Z",
+   "true_from": null,
+   "title": "Lumen Atlas raises a seed round",
+   "text": "Lumen Atlas raised $8M in seed funding.\nThe round was led by local investors.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "solarwire.test"
+   }
+  },
+  {
+   "url": "https://solarwire.test/2025/lumen-atlas-seed",
+   "kind": "news",
+   "epochs": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "searchable": true,
+   "published_at": "2025-06-10T08:00:00Z",
+   "true_from": "2025-06-01",
+   "title": "Lumen Atlas raises a seed round",
+   "text": "Lumen Atlas raised $9M in seed funding.\nThe round was led by local investors.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "solarwire.test"
+   }
+  },
+  {
+   "url": "https://companyfacts.test/lumen-atlas",
+   "kind": "aggregator",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2025-03-01T10:00:00Z",
+   "true_from": null,
+   "title": "Lumen Atlas - company facts",
+   "text": "Lumen Atlas employs 45 people.\nLumen Atlas sells to municipalities.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "companyfacts.test"
+   }
+  },
+  {
+   "url": "https://citylist.test/lumen-atlas",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "searchable": true,
+   "published_at": "2024-03-05T23:30:00-02:00",
+   "true_from": "2025-13-40",
+   "title": "Lumen Atlas city listing",
+   "text": "Lumen Atlas is based in Porto.\nLumen Atlas appears in our city list.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "citylist.test"
+   }
+  },
+  {
+   "url": "https://lumen-atlas.test/news/coo",
+   "kind": "own",
+   "epochs": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "searchable": true,
+   "published_at": "2026-01-16T00:00:00Z",
+   "true_from": "2026-01-15",
+   "title": "Lumen Atlas names a COO",
+   "text": "Lumen Atlas named Marta Reis chief operating officer.\nShe joins from a utility.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lumen-atlas.test"
+   }
+  },
+  {
+   "url": "https://execdirectory.test/lumen-atlas",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "searchable": true,
+   "published_at": null,
+   "true_from": null,
+   "title": "Lumen Atlas executives",
+   "text": "Lumen Atlas CTO: Rui Pinto.\nThe directory lists technology leaders.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "execdirectory.test"
+   }
+  },
+  {
+   "url": "https://demoday.test/lumen-atlas",
+   "kind": "news",
+   "epochs": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "searchable": true,
+   "published_at": "2025-02-01T00:00:00Z",
+   "true_from": null,
+   "title": "Demo day at Lumen Atlas",
+   "text": "Visitors to lumen-atlas.test can book a demo.\nThe demo day of lumen-atlas.test is monthly.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "demoday.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [],
+   "1": [],
+   "2": [],
+   "3": [],
+   "4": []
+  }
+ }
+}
