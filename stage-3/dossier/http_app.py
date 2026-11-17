@@ -118,7 +118,27 @@ def build_app(service: Service) -> web.Application:
         if ui_routes.wants_html(request):
             return await ui_routes.document(request)  # the browser and the API share this path
         auth(request)
+        if "as_of" in request.query:
+            return _json(200, service.read_as_of(request.match_info["domain"], request.query["as_of"]))
         return _json(200, service.read(request.match_info["domain"]))
+
+    @routes.get("/dossiers/{domain}/values")
+    async def values(request):
+        auth(request)
+        return _json(200, service.values(request.match_info["domain"], request.query.get("true_at"),
+                                         request.query.get("as_of")))
+
+    @routes.get("/dossiers/{domain}/history")
+    async def history(request):
+        auth(request)
+        return _json(200, service.history(request.match_info["domain"]))
+
+    @routes.get("/changes")
+    async def changes(request):
+        auth(request)
+        since = _int_param(request, "since", 0, 0, None)
+        limit = _int_param(request, "limit", 50, 1, 200)
+        return _json(200, service.changes(since, limit))
 
     @routes.post("/dossiers/{domain}/refresh")
     async def refresh(request):
