@@ -42,5 +42,27 @@ class Pages(unittest.TestCase):
         self.assertFalse(pages.contains_excerpt("Acme was founded in 2015.", "Acme was founded in 2014."))
 
 
+class KindAndPublished(unittest.TestCase):
+    def test_kind_line_wins_when_listed(self):
+        self.assertEqual(pages.page_kind({"Kind": "news"}, "https://acme.test/x", "acme.test"), "news")
+        self.assertEqual(pages.page_kind({"Kind": "filing"}, "https://reg.test/x", "acme.test"), "filing")
+
+    def test_kind_default_by_host(self):
+        self.assertEqual(pages.page_kind({}, "https://WWW.Acme.test/legal", "acme.test"), "own")
+        self.assertEqual(pages.page_kind({"Kind": "blog"}, "https://dir.test/acme", "acme.test"), "aggregator")
+        self.assertEqual(pages.page_kind({}, "https://sub.acme.test/x", "acme.test"), "aggregator")
+
+    def test_published(self):
+        self.assertEqual(pages.page_published({"Published": "2026-03-01T00:00:00Z"}), "2026-03-01T00:00:00+00:00")
+        self.assertEqual(pages.page_published({"Published": "2025-09-01T10:00:00+02:00"}), "2025-09-01T10:00:00+02:00")
+        self.assertIsNone(pages.page_published({"Published": "sometime in 2019"}))
+        self.assertIsNone(pages.page_published({"Published": "2026-03-01"}))
+        self.assertIsNone(pages.page_published({}))
+
+    def test_header_values(self):
+        header, _ = pages.split_prose("Kind: own\nPublished: 2024-01-01T00:00:00Z\nKind: news\n\nBody.")
+        self.assertEqual(pages.header_values(header), {"Kind": "own", "Published": "2024-01-01T00:00:00Z"})
+
+
 if __name__ == "__main__":
     unittest.main()

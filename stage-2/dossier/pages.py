@@ -1,9 +1,15 @@
 """Pages (§4): header lines, prose, and the sentences of prose that support field values."""
 from __future__ import annotations
 
-from . import support
+import datetime as dt
+import re
+from urllib.parse import urlparse
+
+from . import domains, support
 
 MAX_EXCERPT = 500
+KINDS = ("own", "filing", "news", "aggregator")
+_RFC3339 = re.compile(r"\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:\d{2})")
 
 
 def _is_header_name(name: str) -> bool:
@@ -28,6 +34,37 @@ def split_prose(text: str) -> tuple[str, str]:
         if line.strip() == "":
             return "\n".join(lines[:i]), "\n".join(lines[i + 1:])
     return text, ""
+
+
+def header_values(header: str) -> dict:
+    """Header lines as {name: value}; the first line of a name counts."""
+    out = {}
+    for line in support.split_lines(header):
+        if is_header_line(line):
+            name, _, value = line.partition(":")
+            out.setdefault(name, value.strip())
+    return out
+
+
+def page_kind(header: dict, url: str, domain: str) -> str:
+    """The `Kind` line when it names a kind, else `own` on the company's host and `aggregator` elsewhere."""
+    kind = header.get("Kind")
+    if kind in KINDS:
+        return kind
+    host = urlparse(url).hostname or ""
+    return "own" if domains.normalise(host) == domain else "aggregator"
+
+
+def page_published(header: dict) -> str | None:
+    """The `Published` instant as RFC 3339 with an offset, or None when absent or not RFC 3339."""
+    value = header.get("Published")
+    if not value or not _RFC3339.fullmatch(value):
+        return None
+    text = value[:-1] + "+00:00" if value[-1] in "Zz" else value
+    try:
+        return dt.datetime.fromisoformat(text.replace("t", "T")).isoformat()
+    except ValueError:
+        return None
 
 
 def complete_sentences(prose: str, truncated: bool) -> list[str]:

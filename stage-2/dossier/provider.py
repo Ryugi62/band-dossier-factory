@@ -21,6 +21,7 @@ log = logging.getLogger("dossier.provider")
 BUILD_CAP = 80
 COST_SEARCH_LITE = 1
 COST_EXTRACT = 1
+COST_RENDER = 3
 COST_RESEARCH = 25
 MAX_RESULTS = 10
 RETRIES = 3
@@ -199,10 +200,15 @@ class Gateway:
             return None
         return [SearchHit(r.url, r.title or "", r.description or r.content or "") for r in resp.results if r.url]
 
-    async def extract(self, meter: Meter, url: str) -> str | None:
+    async def extract(self, meter: Meter, url: str, render: bool = False) -> str | None:
+        """The page text Nimble serves for `url`; with `render`, the text a browser shows once it has loaded."""
+        options = {"render": True} if render else None
+
         async def call():
-            return await self.router().extract(url, provider="nimble", format="markdown", timeout=CALL_TIMEOUT)
-        ok, resp = await self._metered(meter, COST_EXTRACT, call, f"extract {url}")
+            return await self.router().extract(url, provider="nimble", format="markdown", provider_options=options,
+                                               timeout=CALL_TIMEOUT)
+        cost = COST_RENDER if render else COST_EXTRACT
+        ok, resp = await self._metered(meter, cost, call, f"{'render' if render else 'extract'} {url}")
         if not ok or not resp.documents:
             return None
         return resp.documents[0].content or ""
