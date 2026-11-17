@@ -10,10 +10,8 @@ D = "acme.test"
 class FakeGateway:
     """Stands in for the WebRouter gateway; records each call and charges the meter like the real one."""
 
-    live = False
-
-    def __init__(self, hits, pages=None, claims=None):
-        self.hits, self.pages, self.claims, self.calls = hits, pages or {}, claims, []
+    def __init__(self, hits, pages=None, claims=None, live=False):
+        self.hits, self.pages, self.claims, self.calls, self.live = hits, pages or {}, claims, [], live
 
     async def search(self, meter, query):
         if not meter.reserve(1):
@@ -96,6 +94,31 @@ class Pipeline(unittest.TestCase):
         fields, meter = build(Dead({}, claims=None))
         self.assertIsNone(fields)
         self.assertEqual(meter.spent, 0)
+
+
+class LivePath(unittest.TestCase):
+    """Against the live endpoint snippets are not prose: every relevant page is extracted, never cited from a snippet."""
+
+    def test_live_snippets_are_not_evidence_and_pages_are_extracted(self):
+        hits = {D: [SearchHit("https://acme.test/a", "About Acme", "Acme was founded in 2014."),
+                    SearchHit("https://other.test/z", "Unrelated", "Nothing here."),
+                    SearchHit("https://news.test/n", "Weekly news", "A note on Acme and others.")]}
+        pages = {"https://acme.test/a": "Acme was founded in 2015.\nAcme employs 40 people.",
+                 "https://news.test/n": "Kind: news\n\nAcme is headquartered in Porto."}
+        gw = FakeGateway(hits, pages, claims=[], live=True)
+        fields, _ = build(gw)
+        self.assertEqual(fields["founded_year"]["value"], 2015)
+        self.assertEqual(fields["headcount_range"]["value"], "11-50")
+        self.assertEqual(fields["hq_city"]["value"], "Porto")
+        self.assertIn(("extract", "https://acme.test/a"), gw.calls)
+        self.assertIn(("extract", "https://news.test/n"), gw.calls)
+        self.assertNotIn(("extract", "https://other.test/z"), gw.calls)
+
+    def test_live_runs_field_searches_even_when_domain_search_is_short(self):
+        gw = FakeGateway({D: [SearchHit("https://acme.test/a", "Acme", "x")]}, {"https://acme.test/a": "x"},
+                         claims=[], live=True)
+        build(gw)
+        self.assertEqual(sum(1 for c in gw.calls if c[0] == "search"), 7)
 
 
 class Decide(unittest.TestCase):

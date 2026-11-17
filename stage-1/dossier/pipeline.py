@@ -41,6 +41,7 @@ class Page:
     truncated: bool
     searched: bool = True
     extracted: bool = False
+    snippet: str = ""
 
 
 @dataclass
@@ -56,7 +57,7 @@ class Evidence:
                 continue
             complete = snippets_are_prose and len(h.snippet) < SNIPPET_CHARS
             usable = h.snippet if snippets_are_prose else ""
-            self.pages[h.url] = Page(h.url, h.title, usable, truncated=not complete)
+            self.pages[h.url] = Page(h.url, h.title, usable, truncated=not complete, snippet=h.snippet)
             self._scan(self.pages[h.url])
 
     def add_extract(self, url: str, text: str) -> None:
@@ -87,7 +88,7 @@ class Evidence:
         host = (urlparse(page.url).hostname or "").lower()
         if host == self.domain or host.endswith("." + self.domain):
             return True
-        return support.names_company(f"{page.title} {page.prose}", self.domain)
+        return support.names_company(f"{page.title} {page.snippet} {page.prose}", self.domain)
 
     def verify_claim(self, claim: Claim) -> tuple | None:
         """(field, value, url, excerpt) when the claim's citation supports its value in text held for its url."""
