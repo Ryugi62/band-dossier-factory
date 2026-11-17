@@ -1,6 +1,6 @@
 import unittest
 
-from dossier import pages, support
+from dossier import pages, roles
 from dossier.timeline import change_type, instant, new_entries, snapshot_index, spent_upto, values_at, view_fields
 
 D = "lumen.test"
@@ -102,11 +102,11 @@ class AsOfAndValues(unittest.TestCase):
 
 class TitlesAndTrueFrom(unittest.TestCase):
     def test_title_support(self):
-        self.assertEqual(support.supported_title("Lumen CFO: Ana Silva.", "cfo", D), "Ana Silva")
-        self.assertEqual(support.supported_title("Bruno Costa is the chief technology officer of Lumen.", "cto", D),
+        self.assertEqual(roles.supported_title("Lumen CFO: Ana Silva.", "cfo", D), "Ana Silva")
+        self.assertEqual(roles.supported_title("Bruno Costa is the chief technology officer of Lumen.", "cto", D),
                          "Bruno Costa")
-        self.assertIsNone(support.supported_title("Lumen CFO: Ana Silva.", "cto", D))
-        self.assertIsNone(support.supported_title("Former Lumen CFO Ana Silva left.", "cfo", D))
+        self.assertIsNone(roles.supported_title("Lumen CFO: Ana Silva.", "cto", D))
+        self.assertIsNone(roles.supported_title("Former Lumen CFO Ana Silva left.", "cfo", D))
 
     def test_page_true_from(self):
         self.assertEqual(pages.page_true_from({"Effective": "2021-01-01", "Published": "2026-01-01T00:00:00Z"}),

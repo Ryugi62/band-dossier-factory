@@ -5,7 +5,7 @@ import datetime as dt
 import re
 from urllib.parse import urlparse
 
-from . import domains, support
+from . import domains, roles, support
 
 MAX_EXCERPT = 500
 KINDS = ("own", "filing", "news", "aggregator")
@@ -114,8 +114,8 @@ def supporting_titles(sentences: list[str], domain: str):
         excerpt = support.collapse_ws(sentence)
         if not excerpt or len(excerpt) > MAX_EXCERPT or not support.names_company(excerpt, domain):
             continue
-        for title in support.TITLES:
-            name = support.supported_title(excerpt, title, domain)
+        for title in roles.TITLES:
+            name = roles.supported_title(excerpt, title, domain)
             if name is not None:
                 yield title, name, excerpt
 
@@ -126,7 +126,7 @@ def supporting_investors(sentences: list[str], domain: str):
         excerpt = support.collapse_ws(sentence)
         if not excerpt or len(excerpt) > MAX_EXCERPT or not support.names_company(excerpt, domain):
             continue
-        for name in support.investor_names(excerpt, domain):
+        for name in roles.investor_names(excerpt, domain):
             yield name, excerpt
 
 

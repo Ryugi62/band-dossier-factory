@@ -11,7 +11,8 @@ from . import accounts, domains, errors, lineage, selection, upgrade
 from .clock import parse_rfc3339
 from .pages import KINDS
 from .store import Batch, Dossier, Store, User
-from .support import FIELDS, HEADCOUNT_VALUES, TITLES
+from .roles import TITLES
+from .support import FIELDS, HEADCOUNT_VALUES
 from .timeline import ALL_FIELDS
 from .upgrade import need as _need
 

@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import datetime as dt
 
-from .support import FIELDS, TITLES
+from .roles import TITLES
+from .support import FIELDS
 
 PROVIDER_ORDER = ("nimble", "tavily", "kernel", "browserbase")
 _AUTHORITY = {"own": 0, "filing": 0, "news": 1, "aggregator": 2}  # an imported candidate (kind null) ranks as aggregator

@@ -1,7 +1,7 @@
 import asyncio
 import unittest
 
-from dossier import errors, lineage, support
+from dossier import errors, lineage, roles
 from dossier.batches import validate
 from dossier.corroboration import origin_keys
 from dossier.provider import Meter
@@ -52,11 +52,11 @@ class Lineage(unittest.TestCase):
 
 class Investors(unittest.TestCase):
     def test_names(self):
-        self.assertEqual(support.investor_names("Orbit Forge raised $20M in a round led by General Atlantic.", D),
+        self.assertEqual(roles.investor_names("Orbit Forge raised $20M in a round led by General Atlantic.", D),
                          ["General Atlantic"])
-        self.assertEqual(support.investor_names("Orbit Forge is led by Dana Ruiz.", D), [])
-        self.assertEqual(support.investor_names("Orbit Forge is backed by Northwind Ventures.", D), ["Northwind Ventures"])
-        self.assertEqual(support.investor_names("Orbit Forge might be backed by Sequoia Holdings next.", D), [])
+        self.assertEqual(roles.investor_names("Orbit Forge is led by Dana Ruiz.", D), [])
+        self.assertEqual(roles.investor_names("Orbit Forge is backed by Northwind Ventures.", D), ["Northwind Ventures"])
+        self.assertEqual(roles.investor_names("Orbit Forge might be backed by Sequoia Holdings next.", D), [])
 
     def test_members_value_and_true_from(self):
         def c(name, url, kind, origin, tf):
