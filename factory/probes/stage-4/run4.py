@@ -109,7 +109,8 @@ class Ctx4(run3.Ctx3):
         if not isinstance(f, dict) or sorted(f) != sorted(F8):
             self.check(False, f"INV4 {dom}: fields keys {list(f) if isinstance(f, dict) else f!r} != eight [V1-01]")
             return
-        run2.Ctx2.inv(self, dict(d, fields={k: f[k] for k in FIELDS}))
+        # the original stage-2 class (browser4 later rebinds run2.Ctx2 to Ctx4)
+        run3.Ctx3.__bases__[0].inv(self, dict(d, fields={k: f[k] for k in FIELDS}))
         for name in FIELDS:
             for m in self._inv_times(name, f[name], ra):
                 self.check(False, f"INV4 {dom}: {name}: {m}")
