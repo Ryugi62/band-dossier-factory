@@ -1,0 +1,295 @@
+{
+ "domain": "lattice-lineage.test",
+ "names": [
+  "Lattice Lineage"
+ ],
+ "pages": [
+  {
+   "url": "https://lattice-lineage.test/",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice Lineage",
+   "text": "Lattice Lineage is headquartered in Ghent.\nLattice Lineage builds survey tools.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lattice-lineage.test"
+   }
+  },
+  {
+   "url": "https://chain-a.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice copy A",
+   "text": "Lattice Lineage employs 140 people.\nCopied from a partner.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://chain-b.test/lattice",
+    "first_published_by": null,
+    "registrant": "chain-a.test"
+   }
+  },
+  {
+   "url": "https://chain-b.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": false,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice copy B",
+   "text": "Lattice Lineage employs 140 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://chain-c.test/lattice",
+    "first_published_by": null,
+    "registrant": "chain-b.test"
+   }
+  },
+  {
+   "url": "https://chain-c.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": false,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice copy C",
+   "text": "Lattice Lineage employs 140 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://chain-d.test/lattice",
+    "first_published_by": null,
+    "registrant": "chain-c.test"
+   }
+  },
+  {
+   "url": "https://chain-d.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": false,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice copy D",
+   "text": "Lattice Lineage employs 140 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://chain-e.test/lattice",
+    "first_published_by": null,
+    "registrant": "chain-d.test"
+   }
+  },
+  {
+   "url": "https://chain-e.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": false,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice copy E",
+   "text": "Lattice Lineage employs 140 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": "deep-origin.test",
+    "registrant": "chain-e.test"
+   }
+  },
+  {
+   "url": "https://hop-x.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice listing X",
+   "text": "Lattice Lineage employs 140 people.\nSyndicated listing.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://hop-g.test/lattice",
+    "first_published_by": null,
+    "registrant": "hop-x.test"
+   }
+  },
+  {
+   "url": "https://hop-g.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": false,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice listing G",
+   "text": "Lattice Lineage employs 140 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://hop-h.test/lattice",
+    "first_published_by": null,
+    "registrant": "hop-g.test"
+   }
+  },
+  {
+   "url": "https://hop-h.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": false,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice listing H",
+   "text": "Lattice Lineage employs 140 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://hop-i.test/lattice",
+    "first_published_by": null,
+    "registrant": "hop-h.test"
+   }
+  },
+  {
+   "url": "https://hop-i.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": false,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice listing I",
+   "text": "Lattice Lineage employs 140 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": "final-origin.test",
+    "registrant": "hop-i.test"
+   }
+  },
+  {
+   "url": "https://loop-a.test/lattice",
+   "kind": "news",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice loop A",
+   "text": "Lattice Lineage is backed by Cobalt Equity.\nLoop page A.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://loop-b.test/lattice",
+    "first_published_by": null,
+    "registrant": "loop-a.test"
+   }
+  },
+  {
+   "url": "https://loop-b.test/lattice",
+   "kind": "news",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice loop B",
+   "text": "Lattice Lineage is backed by Cobalt Equity.\nLoop page B.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://loop-a.test/lattice",
+    "first_published_by": null,
+    "registrant": "loop-b.test"
+   }
+  },
+  {
+   "url": "https://oddlines.test/lattice",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice odd lines",
+   "text": "The registered name of the company is Lattice Lineage S.A.S.\nOdd lines.",
+   "facts": {},
+   "lineage": {
+    "canonical": "notaurl",
+    "first_published_by": "-bad-.test",
+    "registrant": "not a domain!"
+   }
+  },
+  {
+   "url": "https://lattice-lineage-fans.test/",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "true_from": null,
+   "title": "Lattice fans",
+   "text": "Lattice Lineage is backed by Quarry Capital.\nA fan site.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "lattice-lineage-fans.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [],
+   "1": [],
+   "2": []
+  }
+ }
+}

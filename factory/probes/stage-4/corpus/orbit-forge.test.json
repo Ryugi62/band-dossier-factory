@@ -1,0 +1,267 @@
+{
+ "domain": "orbit-forge.test",
+ "names": [
+  "Orbit Forge"
+ ],
+ "pages": [
+  {
+   "url": "https://orbit-forge.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2024-05-02T00:00:00Z",
+   "true_from": null,
+   "title": "About Orbit Forge",
+   "text": "Orbit Forge is headquartered in Lyon.\nOrbit Forge is backed by Northwind Ventures.\nOrbit Forge is led by Dana Ruiz.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "orbit-forge.test"
+   }
+  },
+  {
+   "url": "https://orbit-forge.test/about",
+   "kind": "own",
+   "epochs": [
+    2
+   ],
+   "searchable": true,
+   "published_at": "2026-02-01T00:00:00Z",
+   "true_from": "2026-02-01",
+   "title": "About Orbit Forge",
+   "text": "Orbit Forge is headquartered in Grenoble.\nOrbit Forge is backed by Northwind Ventures.\nOrbit Forge is led by Dana Ruiz.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "orbit-forge.test"
+   }
+  },
+  {
+   "url": "https://dailyorbit.test/2025/orbit-forge",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2025-03-01T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge profile",
+   "text": "Orbit Forge is headquartered in Lyon.\nThe firm makes satellite parts.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "dailyorbit.test"
+   }
+  },
+  {
+   "url": "https://partnerfeed.test/orbit-forge-news",
+   "kind": "news",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-04-01T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge history",
+   "text": "Orbit Forge was founded in 2016.\nOrbit Forge is backed by Ember Fund.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": "wire.test",
+    "registrant": "partnerfeed.test"
+   }
+  },
+  {
+   "url": "https://othersite.test/orbit-forge",
+   "kind": "news",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-04-02T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge history (reprint)",
+   "text": "Orbit Forge was founded in 2016.\nOrbit Forge is backed by Ember Fund.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": "WWW.Wire.TEST.",
+    "registrant": "othersite.test"
+   }
+  },
+  {
+   "url": "https://mirror.test/orbit-forge-ceo",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-05-01T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge CEO",
+   "text": "Orbit Forge CEO: Lena Hart.\nThis is a mirrored page.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://orbit-forge.test/team",
+    "first_published_by": null,
+    "registrant": "mirror.test"
+   }
+  },
+  {
+   "url": "https://orbit-forge.test/team",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-05-01T00:00:00Z",
+   "true_from": null,
+   "title": "Team | Orbit Forge",
+   "text": "Orbit Forge CEO: Lena Hart.\nThe Orbit Forge team works in Lyon.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "orbit-forge.test"
+   }
+  },
+  {
+   "url": "https://ceowire.test/orbit-forge-ceo",
+   "kind": "news",
+   "epochs": [
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge names its chief",
+   "text": "Orbit Forge CEO: Lena Hart.\nShe joined from an aerospace group.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "ceowire.test"
+   }
+  },
+  {
+   "url": "https://reprint.test/orbit-forge",
+   "kind": "news",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge raises $20M (reprint)",
+   "text": "Orbit Forge raised $20M in a round led by General Atlantic.\nThe deal closed in May.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://gone.test/original",
+    "first_published_by": null,
+    "registrant": "reprint.test"
+   }
+  },
+  {
+   "url": "https://dealwire.test/orbit-forge-round",
+   "kind": "news",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-06-02T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge raises $20M",
+   "text": "Orbit Forge raised $20M in a round led by General Atlantic.\nOrbit Forge might be backed by Sequoia Holdings next.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "dealwire.test"
+   }
+  },
+  {
+   "url": "https://orbitforge.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-07-01T00:00:00Z",
+   "true_from": null,
+   "title": "Orbit Forge (lookalike)",
+   "text": "Orbit Forge is backed by Redwood Partners.\nWelcome to our site.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "orbit-forge-holdings.test"
+   }
+  },
+  {
+   "url": "https://orbit-forge.test/press",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-08-01T00:00:00Z",
+   "true_from": null,
+   "title": "Press | Orbit Forge",
+   "text": "Orbit Forge CFO: Mia Kerr.\nPress contacts are below.",
+   "facts": {},
+   "lineage": {
+    "canonical": "HTTPS://ORBIT-FORGE.TEST/press#contacts",
+    "first_published_by": null,
+    "registrant": "orbit-forge.test"
+   }
+  },
+  {
+   "url": "https://orbit-forge.test/investors",
+   "kind": "own",
+   "epochs": [
+    2
+   ],
+   "searchable": true,
+   "published_at": "2023-01-02T00:00:00Z",
+   "true_from": "2023-01-01",
+   "title": "Investors | Orbit Forge",
+   "text": "Orbit Forge is backed by Atlas Capital.\nOur investors support long-term research.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "orbit-forge.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [],
+   "1": [],
+   "2": []
+  }
+ }
+}
