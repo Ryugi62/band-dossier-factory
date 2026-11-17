@@ -434,7 +434,7 @@ async def b07(b, browser):
     await b.api(b.c.mock_reset, 0)
     # refusal (4xx) and 5xx
     for status, want, why in ((404, "refresh-error", "4xx is a refusal"), (503, "refresh-uncertain", "5xx is uncertain")):
-        async def fake(route, status=status):
+        async def fake(route, *, status=status):  # keyword-only: Playwright passes (route, request) to 2-arg handlers
             if route.request.method == "POST":
                 await route.fulfill(status=status, content_type="application/json",
                                     body=json.dumps({"error": {"code": "not_found" if status == 404 else "unavailable",
