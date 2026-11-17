@@ -98,6 +98,12 @@ seat's calls but no price, so no figure is claimed here.
 - The margin to the per-build cap is thin on one company (77 of 80 units at stage 4).
 - Not measured: money or token spend, seat idle time, and any live-web accuracy beyond the single
   `dossier-runway.com.json` build.
+- The live build of `runway.com` (stage-4, own Nimble trial key, run twice with the same outcome) finished
+  `ready` with every field `unknown`. The build log shows the search step spending the whole per-build cap
+  (80 and 79 units), so the extraction step was skipped with "build cap"; live Nimble calls also returned 403
+  and took up to about 45 s, and results mixed in other companies named "Runway". The sample providers never
+  showed this because they answer fast and unambiguously. We left the stage folder as the factory delivered it
+  and did not edit the response file; the gap is the factory's budget split under live latency.
 
 ## Reuse
 
