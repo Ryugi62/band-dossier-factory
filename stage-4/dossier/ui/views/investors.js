@@ -7,8 +7,9 @@ import { timesLine } from './executives.js';
 export function originsLine(f) {
   if (f.value === null || f.value === undefined || !f.origins) return null;
   const n = f.origins.length;
+  const label = f.corroborated ? 'Corroborated' : n >= 2 ? 'Not fully corroborated' : 'Single source';
   return h('p', { class: `origins-line ${f.corroborated ? 'is-corroborated' : 'is-single'}` },
-    h('span', { class: 'origins-badge' }, f.corroborated ? 'Corroborated' : 'Single source'),
+    h('span', { class: 'origins-badge' }, label),
     ` ${n} independent ${n === 1 ? 'origin' : 'origins'}: ${f.origins.join(', ')}`,
     f.corroborated_since ? ` · since ${formatDate(f.corroborated_since)}` : '');
 }
