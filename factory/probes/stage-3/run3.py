@@ -255,7 +255,7 @@ def history_oracle(c, token, dom):
             new = snap[f]["value"]
             if first:
                 if new is not None:
-                    exp[f].append(("initial", snap[f]))
+                    exp[f].append(("initial", snap[f], b["time"]))
             elif not O.same_value(prev[f][0] if prev[f] else None, new):
                 old = prev[f][0] if prev[f] else None
                 if f == "executives":
@@ -264,7 +264,7 @@ def history_oracle(c, token, dom):
                     typ = O.change_type(f, old, new, None, None, omt, nmt)
                 else:
                     typ = O.change_type(f, old, new, prev[f][1] if prev[f] else None, snap[f]["true_from"])
-                exp[f].append((typ, snap[f]))
+                exp[f].append((typ, snap[f], b["time"]))
                 per_build.append({"field": f, "type": typ, "from": old, "to": new, "true_from": snap[f]["true_from"],
                                   "learned_at": b["time"]})
             prev[f] = (new, snap[f]["true_from"], _member_tf(snap[f]) if f == "executives" else None) if new is not None else None
@@ -280,11 +280,12 @@ def history_oracle(c, token, dom):
         want = exp[f]
         c.check(len(got) == len(want) and all(g.get("type") == w[0] for g, w in zip(got, want)),
                 f"history {dom} {f}: types {[g.get('type') for g in got]} != {[w[0] for w in want]} [T3-01..T3-06, T6-02]")
-        for g, (typ, sf) in zip(got, want):
+        for g, (typ, sf, bt) in zip(got, want):
+            # learned_at is the time of the build that recorded the entry, also when the new value is null
             c.check(O.same_value(g.get("value"), sf["value"]) and g.get("true_from") == sf["true_from"]
-                    and same_instant(g.get("learned_at"), sf["learned_at"]) and g.get("citations") == sf["citations"],
+                    and same_instant(g.get("learned_at"), bt) and g.get("citations") == sf["citations"],
                     f"history {dom} {f} {typ} entry {g} != selected value then {sf['value']!r} tf {sf['true_from']!r} "
-                    f"learned {sf['learned_at']} [T6-03]")
+                    f"learned {bt} [T6-03]")
         cur = bs[-1]["snapshot"]["fields"][f] if bs else None
         if cur and cur["value"] is not None and got:
             c.check(same_instant(cur["learned_at"], got[-1].get("learned_at")),
@@ -412,7 +413,8 @@ LUMEN_EXP = {
     2: {"ceo": ("Rita Gomes", "2021-01-01"),
         "executives": ([{"title": "cfo", "name": "Ana Silva"}, {"title": "coo", "name": "Marta Reis"},
                         {"title": "cto", "name": "Bruna Costa"}], "2026-01-15")},
-    3: {"hq_city": ("Braga", "2026-03-01"), "legal_name": ("Lumen Atlas S.A.", "2026-03-01")},
+    3: {"hq_city": ("Braga", "2026-03-01"), "legal_name": ("Lumen Atlas S.A.", "2026-03-01"),
+        "founded_year": (2019, "2026-03-01")},
 }
 LUMEN_FEED = [("ceo", "change"), ("headcount_range", "change"), ("funding_total", "correction"), ("executives", "change"),
               ("ceo", "correction"), ("executives", "correction"), ("hq_city", "change")]
