@@ -34,10 +34,10 @@ RESEARCH_RESULT_TIMEOUT = 200.0
 # starts after 245 s, well past the 120 s floor, and no call is ever given less than 45 s (> 30 s).
 BUILD_DEADLINE = 290.0
 FINAL_ROUND = CALL_TIMEOUT + 5.0
-# Off the live endpoint a build whose calls each answer within 1 s ends within 10 s (§8):
-# refused calls are retried only while the retry can still answer by this point of the build.
-RETRY_WINDOW_OFF_LIVE = 7.0
-ANSWER_BOUND = 1.0
+# A refused call (429 or another error status, cost 0) is made again after RETRY_GAP, up to RETRIES more
+# times (four attempts in all, decision D15): the same call less than a second after a 429 is refused
+# again, and no call is refused more than three times in a row. Time spent waiting after a 429 does
+# not count toward the 10 s bound (stage 2, Rate limits), so retries have no time window of their own.
 
 RESEARCH_SCHEMA = {
     "type": "object",
@@ -76,9 +76,7 @@ class Deadline:
         return self.elapsed() + after + timeout <= BUILD_DEADLINE
 
     def can_retry(self, timeout: float) -> bool:
-        if not self.can_start(timeout, after=RETRY_GAP):
-            return False
-        return self.live or self.elapsed() + RETRY_GAP + ANSWER_BOUND <= RETRY_WINDOW_OFF_LIVE
+        return self.can_start(timeout, after=RETRY_GAP)
 
     def research_wait(self) -> float:
         """Seconds to wait for a research answer, leaving one final round of calls before the deadline."""

@@ -50,12 +50,11 @@ class DeadlineRules(unittest.TestCase):
         clock.t = 280.0
         self.assertEqual(d.research_wait(), 0.0)
 
-    def test_off_live_retries_stop_at_the_window(self):
+    def test_refused_calls_are_retried_whatever_the_build_time_off_live(self):
         clock = FakeClock()
         d = Deadline(live=False, now=clock)
+        clock.t = 30.0
         self.assertTrue(d.can_retry(provider.CALL_TIMEOUT))
-        clock.t = provider.RETRY_WINDOW_OFF_LIVE - provider.RETRY_GAP - provider.ANSWER_BOUND + 0.01
-        self.assertFalse(d.can_retry(provider.CALL_TIMEOUT))
 
 
 class WorstCases(unittest.TestCase):
@@ -103,27 +102,28 @@ class WorstCases(unittest.TestCase):
         self.assertEqual(len(attempts), 1)
         self.assertEqual(meter.spent, 0)
 
-    def test_off_live_consecutive_refusals_in_every_phase_end_within_10s(self):
-        """Every call refused (each answering within 1 s) in each sequential phase: the build still ends < 10 s."""
+    def test_three_refusals_then_an_answer(self):
+        """A call refused three times in a row is answered on its fourth attempt, each after >= 1.1 s (D15)."""
         clock = FakeClock()
+        attempts = []
 
         class Router:
             async def search(self, *a, **k):
-                clock.t += provider.ANSWER_BOUND
-                raise Refused()
+                attempts.append(clock.t)
+                if len(attempts) <= 3:
+                    raise Refused()
 
-            async def extract(self, *a, **k):
-                clock.t += provider.ANSWER_BOUND
-                raise Refused()
+                class Resp:
+                    results = []
+                return Resp()
 
         gw = gateway_with(clock, live=False)
         gw._router = Router()
         meter = Meter(lambda c: None, deadline=Deadline(live=False, now=clock))
-        for _ in range(3):  # domain search, field searches, extracts: one after another
-            asyncio.run(gw.search(meter, "acme.test"))
-        asyncio.run(gw.extract(meter, "https://acme.test/a"))
-        self.assertLess(clock.t, 10.0)
-        self.assertEqual(meter.spent, 0)
+        self.assertEqual(asyncio.run(gw.search(meter, "acme.test")), [])
+        self.assertEqual(len(attempts), 4)
+        self.assertTrue(all(b - a >= provider.RETRY_GAP for a, b in zip(attempts, attempts[1:])))
+        self.assertEqual(meter.spent, 1)
 
 
 if __name__ == "__main__":
