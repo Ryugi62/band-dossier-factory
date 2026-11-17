@@ -1,0 +1,149 @@
+{
+ "domain": "zephyr-quantum.test",
+ "names": [
+  "Zephyr Quantum"
+ ],
+ "pages": [
+  {
+   "url": "https://zephyr-quantum.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "About Zephyr Quantum",
+   "text": "Zephyr Quantum builds cryogenic control electronics for quantum computers.\nZephyr Quantum is headquartered in Zürich. The registered name of the company is Zephyr Quantum Systems GmbH.\nZephyr Quantum Labs Inc. was founded in 2011 by two physicists.",
+   "facts": {
+    "hq_city": "Zephyr Quantum is headquartered in Berlin."
+   },
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "zephyr-quantum.test"
+   }
+  },
+  {
+   "url": "https://quantumwire.test/2025/06/zephyr-quantum-raises",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Zephyr Quantum raises a round",
+   "text": "Zephyr Quantum has raised $12.5 million in a round led by Nordhafen Capital.\nZephyr Quantum reportedly raised $99M more this autumn.\nZephyr Quantum could raise $40 million next year.",
+   "facts": {
+    "hq_city": "Zephyr Quantum is headquartered in Berlin."
+   },
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "quantumwire.test"
+   }
+  },
+  {
+   "url": "https://startupdir.test/zephyr-quantum",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Zephyr Quantum - company data",
+   "text": "Zephyr Quantum employs between 60 and 150 people.\nZephyr Quantum has raised €30 million from European funds.\nFormer CEO of Zephyr Quantum Tom Baker left the company.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "startupdir.test"
+   }
+  },
+  {
+   "url": "https://zephyr-quantum.test/team",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Team | Zephyr Quantum",
+   "text": "Zephyr Quantum CEO: Lena Vogt.\nThe Zephyr Quantum team works from two labs.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "zephyr-quantum.test"
+   }
+  },
+  {
+   "url": "https://zephyr-quantum.test/team",
+   "kind": "own",
+   "epochs": [
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Team | Zephyr Quantum",
+   "text": "Zephyr Quantum named Oskar Lind chief executive officer.\nThe Zephyr Quantum team works from two labs.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "zephyr-quantum.test"
+   }
+  },
+  {
+   "url": "https://labnotes.test/zephyr-quantum-visit",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "A visit to Zephyr Quantum",
+   "text": "Visitors to zephyr-quantum.test can book a tour of the cryogenics lab.\nThe lab tour of zephyr-quantum.test lasts an hour.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "labnotes.test"
+   }
+  },
+  {
+   "url": "https://suppliers.test/zephyr-quantum",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Zephyr Quantum supplier entry",
+   "text": "Zephyr Quantum (zephyr-quantum.test) supplies control racks to research groups.\nResearch groups order the racks through zephyr-quantum.test.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "suppliers.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [],
+   "1": []
+  }
+ }
+}

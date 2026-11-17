@@ -1,0 +1,128 @@
+{
+ "domain": "nordlicht-optics.test",
+ "names": [
+  "Nordlicht Optics"
+ ],
+ "pages": [
+  {
+   "url": "https://nordlicht-optics.test/",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Nordlicht Optics",
+   "text": "Nordlicht Optics designs lenses for industrial cameras.\nNordlicht Optics is based in Malmö.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "nordlicht-optics.test"
+   }
+  },
+  {
+   "url": "https://registry.test/nordlicht-optics",
+   "kind": "filing",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": false,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Register entry Nordlicht Optics",
+   "text": "Ines Brandt is the chief executive of Nordlicht Optics.\nThe register keeps this entry for nordlicht-optics.test up to date.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "registry.test"
+   }
+  },
+  {
+   "url": "https://opticsdaily.test/2025/nordlicht-optics-profile",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Nordlicht Optics profile",
+   "text": "Nordlicht Optics was founded in 2005 in a garage.\nNordlicht Optics wants to raise $8M next year.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "opticsdaily.test"
+   }
+  },
+  {
+   "url": "https://catalogue.test/nordlicht-optics",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2025-06-01T00:00:00Z",
+   "true_from": null,
+   "title": "Nordlicht Optics catalogue entry",
+   "text": "Nordlicht Optics lists its lenses at nordlicht-optics.test.\nBuyers compare the lenses of nordlicht-optics.test online.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "catalogue.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Ines Brandt",
+     "url": "https://registry.test/nordlicht-optics",
+     "excerpt": "Ines Brandt is the chief executive of Nordlicht Optics."
+    },
+    {
+     "field": "funding_total",
+     "value": 8000000,
+     "url": "https://opticsdaily.test/2025/nordlicht-optics-profile",
+     "excerpt": "Nordlicht Optics wants to raise $8M next year."
+    },
+    {
+     "field": "headcount_range",
+     "value": "51-200",
+     "url": "https://nordlicht-optics.test/",
+     "excerpt": "Nordlicht Optics designs lenses for industrial cameras."
+    }
+   ],
+   "1": [
+    {
+     "field": "ceo",
+     "value": "Ines Brandt",
+     "url": "https://registry.test/nordlicht-optics",
+     "excerpt": "Ines Brandt is the chief executive of Nordlicht Optics."
+    },
+    {
+     "field": "funding_total",
+     "value": 8000000,
+     "url": "https://opticsdaily.test/2025/nordlicht-optics-profile",
+     "excerpt": "Nordlicht Optics wants to raise $8M next year."
+    },
+    {
+     "field": "headcount_range",
+     "value": "51-200",
+     "url": "https://nordlicht-optics.test/",
+     "excerpt": "Nordlicht Optics designs lenses for industrial cameras."
+    }
+   ]
+  }
+ }
+}
