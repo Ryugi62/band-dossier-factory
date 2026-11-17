@@ -51,7 +51,7 @@ class Restart(unittest.TestCase):
         self.assertEqual(replay, (200, response))
         self.assertEqual(svc.clock.fixed_iso(), "2026-03-05T00:00:00+00:00")
 
-    def test_build_cut_off_by_a_stop_is_abandoned(self):
+    def test_build_cut_off_by_a_stop_is_closed_failed(self):
         async def before():
             svc = Service(gateway(), Persistence(self.path))
             await svc.reset(dict(FIXTURE))
@@ -59,14 +59,19 @@ class Restart(unittest.TestCase):
             await asyncio.sleep(0.05)
             dossier = svc.store.dossiers["acme.test"]
             dossier.settled_state, dossier.state = "ready", "building"   # a refresh in flight at the stop
-            dossier.spent_units += 7
+            dossier.settled_spent = dossier.spent_units
+            dossier.spent_units += 7      # settled before the stop
+            dossier.inflight = 3          # a call made, not yet answered
             svc.store.save_dossier(dossier)
-            return dossier.spent_units, len(dossier.builds)
+            return dossier.spent_units, len(dossier.builds), svc.read("acme.test")["fields"]
 
-        spent, builds = asyncio.run(before())
+        spent, builds, fields = asyncio.run(before())
         svc = Service(gateway(), Persistence(self.path))
         d = svc.store.dossiers["acme.test"]
-        self.assertEqual((d.state, d.spent_units, len(d.builds)), ("ready", spent, builds))
+        # D43: closed failed before /health; in-flight counted as billed; logged as a failed build of 10 units
+        self.assertEqual((d.state, d.spent_units, len(d.builds)), ("failed", spent + 3, builds + 1))
+        self.assertEqual((d.builds[-1]["outcome"], d.builds[-1]["spent"]), ("failed", 10))
+        self.assertEqual(svc.read("acme.test")["fields"], fields)
 
     def test_reset_replaces_stored_state(self):
         async def run():

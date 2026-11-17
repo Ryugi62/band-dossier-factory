@@ -97,7 +97,8 @@ class StageOneImport(unittest.TestCase):
                             and c["retrieved_at"] == "2026-03-01T09:00:00+00:00" for c in hq["candidates"]))
         self.assertEqual(hq["candidates"][0]["selected"], True)
         self.assertEqual(view["fields"]["ceo"], {"value": None, "status": "unknown", "true_from": None,
-                                                 "learned_at": None, "citations": [], "candidates": []})
+                                                 "learned_at": None, "citations": [], "candidates": [],
+                                                 "origins": [], "corroborated": False, "corroborated_since": None})
         self.assertEqual(view["fields"]["executives"]["status"], "unknown")
         self.assertEqual([e["type"] for e in svc.history("acme.test")["fields"]["hq_city"]], ["initial"])
         self.assertEqual(svc.authenticate("Bearer tok-1"), "u_ada")

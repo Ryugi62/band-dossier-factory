@@ -7,7 +7,7 @@ import re
 
 from aiohttp import web
 
-from . import errors, ui_routes
+from . import batches, errors, ui_routes
 from .service import Service, canonical
 
 log = logging.getLogger("dossier.http")
@@ -132,6 +132,20 @@ def build_app(service: Service) -> web.Application:
     async def history(request):
         auth(request)
         return _json(200, service.history(request.match_info["domain"]))
+
+    @routes.post("/batches")
+    async def create_batch(request):
+        user_id = auth(request)
+        key = _idempotency_key(request)
+        body = await _object(request)
+        status, out = service.idempotent(user_id, "POST", request.path, key, batches.fingerprint(body),
+                                         lambda: batches.create(service, user_id, body))
+        return _json(status, out)
+
+    @routes.get("/batches/{batch_id}")
+    async def read_batch(request):
+        user_id = auth(request)
+        return _json(200, batches.read(service, user_id, request.match_info["batch_id"]))
 
     @routes.get("/changes")
     async def changes(request):

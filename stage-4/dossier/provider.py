@@ -83,28 +83,66 @@ class Deadline:
         return max(0.0, min(RESEARCH_RESULT_TIMEOUT, BUILD_DEADLINE - FINAL_ROUND - self.elapsed()))
 
 
-class Meter:
-    """One build's spending: reservations against the cap, charges reported as they happen."""
+class BatchBudget:
+    """A batch's shared budget (stage 4): reservations of its builds' calls against `budget_units`."""
 
-    def __init__(self, on_charge, cap: int = BUILD_CAP, deadline: Deadline | None = None) -> None:
+    def __init__(self, budget: int, spent: int = 0) -> None:
+        self.budget = budget
+        self.spent = spent
+        self.reserved = 0
+
+    def can_reserve(self, cost: int) -> bool:
+        return self.spent + self.reserved + cost <= self.budget
+
+
+class Meter:
+    """One build's spending: worst-case reservations against the 80-unit cap (and its batch's budget), and
+    settled charges. `on_update` runs after every reservation and settlement, so the caller can write the
+    in-flight reservations durably before a call is made (decision D43)."""
+
+    def __init__(self, on_charge, cap: int = BUILD_CAP, deadline: Deadline | None = None,
+                 batch: BatchBudget | None = None, on_update=None) -> None:
         self.deadline = deadline or Deadline(live=False)
         self.cap = cap
         self.reserved = 0
         self.spent = 0
         self.succeeded = False
+        self.budget_blocked = False
+        self.batch = batch
         self._on_charge = on_charge
+        self._on_update = on_update or (lambda: None)
 
     def reserve(self, cost: int) -> bool:
         if self.spent + self.reserved + cost > self.cap:
             return False
+        if self.batch is not None:
+            if not self.batch.can_reserve(cost):
+                self.budget_blocked = True
+                return False
+            self.batch.reserved += cost
         self.reserved += cost
+        self._on_update()
         return True
 
+    def settle(self, reserved: int, charged: int) -> None:
+        """Release a reservation and charge what the provider billed for that call, in one step."""
+        self.reserved -= reserved
+        self.spent += charged
+        if self.batch is not None:
+            self.batch.reserved -= reserved
+            self.batch.spent += charged
+        if charged:
+            self._on_charge(charged)
+        self._on_update()
+
+    # stage-3 names, kept for callers that charge and release separately
     def release(self, cost: int) -> None:
-        self.reserved -= cost
+        self.settle(cost, 0)
 
     def charge(self, cost: int) -> None:
         self.spent += cost
+        if self.batch is not None:
+            self.batch.spent += cost
         self._on_charge(cost)
 
 
@@ -163,8 +201,9 @@ class Gateway:
             log.info("%s skipped: the build deadline leaves no room", what)
             return False, None
         if not meter.reserve(cost):
-            log.info("%s skipped: the build cap leaves no room", what)
+            log.info("%s skipped: the build cap or the batch budget leaves no room", what)
             return False, None
+        settled = False
         try:
             for attempt in range(RETRIES + 1):
                 try:
@@ -177,17 +216,20 @@ class Gateway:
                     if kind == REFUSED and attempt < RETRIES and meter.deadline.can_retry(timeout):
                         await self._sleep(RETRY_GAP)
                         continue
-                    if kind in (LOST, ANSWERED_EMPTY):
-                        meter.charge(cost)
+                    billed = cost if kind in (LOST, ANSWERED_EMPTY) else 0
+                    meter.settle(cost, billed)
+                    settled = True
                     if kind == ANSWERED_EMPTY:
                         meter.succeeded = True
                     return False, None
-                meter.charge(cost)
+                meter.settle(cost, cost)
+                settled = True
                 meter.succeeded = True
                 return True, result
             return False, None
         finally:
-            meter.release(cost)
+            if not settled:
+                meter.settle(cost, 0)
 
     async def search(self, meter: Meter, query: str) -> list[SearchHit] | None:
         async def call():

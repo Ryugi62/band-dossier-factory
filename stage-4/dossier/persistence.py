@@ -12,7 +12,7 @@ import os
 import sqlite3
 from contextlib import contextmanager
 
-_TABLES = ("users", "tokens", "idempotent", "dossiers", "feed")
+_TABLES = ("users", "tokens", "idempotent", "dossiers", "feed", "batches")
 
 
 class Persistence:
@@ -56,6 +56,8 @@ class Persistence:
                 self._put(db, "dossiers", d["domain"], d)
             for f in state["feed"]:
                 self._put(db, "feed", f["seq"], f)
+            for b in state.get("batches", []):
+                self._put(db, "batches", b["id"], b)
             self._put(db, "meta", "next_seq", state["next_seq"])
             self._put(db, "meta", "clock", clock)
             self._put(db, "meta", "initialised", True)
@@ -73,13 +75,19 @@ class Persistence:
             self._put(db, "idempotent", json.dumps(slot), {"user_id": slot[0], "method": slot[1], "path": slot[2],
                                                           "key": slot[3], **record})
 
-    def put_dossier(self, dossier: dict, feed: list[dict], next_seq: int) -> None:
+    def put_dossier(self, dossier: dict, feed: list[dict], next_seq: int, batch: dict | None = None) -> None:
         with self._tx() as db:
             self._put(db, "dossiers", dossier["domain"], dossier)
+            if batch is not None:
+                self._put(db, "batches", batch["id"], batch)
             for f in feed:
                 self._put(db, "feed", f["seq"], f)
             if feed:
                 self._put(db, "meta", "next_seq", next_seq)
+
+    def put_batch(self, batch: dict) -> None:
+        with self._tx() as db:
+            self._put(db, "batches", batch["id"], batch)
 
     def put_clock(self, value: str | None) -> None:
         with self._tx() as db:
@@ -92,7 +100,7 @@ class Persistence:
         if not meta.get("initialised"):
             return None
         rows = {t: [json.loads(v) for (v,) in self.db.execute(f"SELECT v FROM {t} ORDER BY k")] for t in _TABLES}
-        state = {"schema": "dossier-stage-3", "users": rows["users"], "tokens": rows["tokens"],
+        state = {"schema": "dossier-stage-4", "users": rows["users"], "tokens": rows["tokens"],
                  "idempotent": rows["idempotent"], "dossiers": rows["dossiers"], "feed": rows["feed"],
-                 "next_seq": meta.get("next_seq", 1)}
+                 "next_seq": meta.get("next_seq", 1), "batches": rows["batches"]}
         return state, meta.get("clock")

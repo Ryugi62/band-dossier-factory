@@ -13,7 +13,7 @@ import secrets
 from dataclasses import dataclass, field
 
 from . import timeline
-from .timeline import SEVEN
+from .timeline import ALL_FIELDS
 
 
 @dataclass
@@ -28,8 +28,32 @@ class User:
                 "password_hash": self.password_hash}
 
 
+@dataclass
+class Batch:
+    """A batch (stage 4): domains researched under one shared budget; it doubles as the Meter's batch budget."""
+    id: str
+    owner: str
+    budget: int
+    domains: list
+    spent: int = 0
+    running: list = field(default_factory=list)   # domains whose build this batch started and that still run
+    reserved: int = 0                              # in-flight reservations of its builds (in memory)
+
+    def can_reserve(self, cost: int) -> bool:
+        return self.spent + self.reserved + cost <= self.budget
+
+    def to_dict(self) -> dict:
+        return {"id": self.id, "owner": self.owner, "budget": self.budget, "domains": self.domains,
+                "spent": self.spent, "running": self.running}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> Batch:
+        return cls(id=d["id"], owner=d["owner"], budget=d["budget"], domains=list(d["domains"]), spent=d["spent"],
+                   running=list(d.get("running", [])))
+
+
 def empty_history() -> dict:
-    return {f: [] for f in SEVEN}
+    return {f: [] for f in ALL_FIELDS}
 
 
 @dataclass
@@ -44,6 +68,9 @@ class Dossier:
     # what the dossier was before the running build, for exports taken mid-build (§10) and restarts (D27)
     settled_state: str = "failed"
     settled_spent: int = 0
+    inflight: int = 0                 # worst-case cost of calls made and not yet answered (write-ahead, D43)
+    batch_id: str | None = None       # the batch whose build is running, if any
+    builds_started_at: str | None = None  # time of the running build
     task: asyncio.Task | None = None
 
     # -------------------------------------------------------------- reading
@@ -59,8 +86,7 @@ class Dossier:
         return self.builds[i]["time"] if i is not None else None
 
     def fields_at(self, index: int | None) -> dict:
-        return timeline.view_fields(self.builds[index] if index is not None else None, self.history,
-                                    index if index is not None else -1)
+        return timeline.view_fields(self.builds, index, self.history)
 
     def view(self) -> dict:
         return {"dossier_id": self.id, "domain": self.domain, "state": self.state,
@@ -81,7 +107,7 @@ class Dossier:
 
     def history_view(self) -> dict:
         return {"domain": self.domain,
-                "fields": {f: [timeline.public_entry(e) for e in self.history.get(f, [])] for f in SEVEN}}
+                "fields": {f: [timeline.public_entry(e) for e in self.history.get(f, [])] for f in ALL_FIELDS}}
 
     # -------------------------------------------------------------- (de)serialisation
     def to_dict(self, settled: bool = False) -> dict:
@@ -92,6 +118,8 @@ class Dossier:
             "state": self.settled_state if (settled and building) else self.state,
             "spent_units": self.settled_spent if (settled and building) else self.spent_units,
             "settled_state": self.settled_state, "settled_spent": self.settled_spent,
+            "inflight": 0 if settled else self.inflight, "batch_id": None if settled else self.batch_id,
+            "build_time": None if settled else self.builds_started_at,
             "builds": self.builds, "history": self.history,
             "first_seen": [[k, v] for k, v in self.first_seen.items()],
         }
@@ -99,9 +127,10 @@ class Dossier:
     @classmethod
     def from_dict(cls, d: dict) -> Dossier:
         return cls(id=d["id"], domain=d["domain"], state=d["state"], spent_units=d["spent_units"],
-                   builds=d["builds"], history={f: list(d["history"].get(f, [])) for f in SEVEN},
+                   builds=d["builds"], history={f: list(d["history"].get(f, [])) for f in ALL_FIELDS},
                    first_seen={k: v for k, v in d["first_seen"]}, settled_state=d.get("settled_state", d["state"]),
-                   settled_spent=d.get("settled_spent", d["spent_units"]))
+                   settled_spent=d.get("settled_spent", d["spent_units"]), inflight=d.get("inflight", 0),
+                   batch_id=d.get("batch_id"), builds_started_at=d.get("build_time"))
 
 
 class Store:
@@ -116,10 +145,12 @@ class Store:
         self.idempotent: dict[tuple[str, str, str, str], dict] = {}
         self.feed: list[dict] = []
         self.next_seq = 1
+        self.batches: dict[str, Batch] = {}
 
     # -------------------------------------------------------------- lifecycle
     def replace(self, users: list[User], tokens: dict[str, str], dossiers: list[Dossier], idempotent: dict,
-                feed: list[dict] | None = None, next_seq: int = 1, clock: str | None = None) -> None:
+                feed: list[dict] | None = None, next_seq: int = 1, clock: str | None = None,
+                batches: list[Batch] | None = None) -> None:
         """Swap in a whole new state, cutting off every running build, and persist it."""
         self.generation += 1
         for d in self.dossiers.values():
@@ -132,6 +163,7 @@ class Store:
         self.idempotent = dict(idempotent)
         self.feed = list(feed or [])
         self.next_seq = next_seq
+        self.batches = {b.id: b for b in batches or []}
         if self.persistence:
             self.persistence.replace_all(self.snapshot(), clock)
 
@@ -156,9 +188,20 @@ class Store:
         if self.persistence:
             self.persistence.put_idempotent(list(slot), record)
 
-    def save_dossier(self, dossier: Dossier, feed: list[dict] | None = None) -> None:
+    def save_dossier(self, dossier: Dossier, feed: list[dict] | None = None, batch: Batch | None = None) -> None:
         if self.persistence:
-            self.persistence.put_dossier(dossier.to_dict(), feed or [], self.next_seq)
+            self.persistence.put_dossier(dossier.to_dict(), feed or [], self.next_seq,
+                                         batch.to_dict() if batch else None)
+
+    def save_batch(self, batch: Batch) -> None:
+        if self.persistence:
+            self.persistence.put_batch(batch.to_dict())
+
+    def new_batch_id(self) -> str:
+        while True:
+            bid = "b_" + secrets.token_hex(8)
+            if bid not in self.batches:
+                return bid
 
     def save_clock(self, value: str | None) -> None:
         if self.persistence:
@@ -193,7 +236,7 @@ class Store:
     # -------------------------------------------------------------- export (stage-3 shape)
     def snapshot(self, settled: bool = False) -> dict:
         return {
-            "schema": "dossier-stage-3",
+            "schema": "dossier-stage-4",
             "users": [u.to_dict() for u in self.users.values()],
             "tokens": [{"token": t, "user_id": uid} for t, uid in self.tokens.items()],
             "dossiers": [d.to_dict(settled) for d in self.dossiers.values()],
@@ -201,4 +244,5 @@ class Store:
                             "request": v["request"], "response": v["response"]} for k, v in self.idempotent.items()],
             "feed": self.feed,
             "next_seq": self.next_seq,
+            "batches": [dict(b.to_dict(), running=[] if settled else b.running) for b in self.batches.values()],
         }

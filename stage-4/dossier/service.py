@@ -42,9 +42,28 @@ class Service:
         state, clock = loaded
         parts = exchange.parse_import({"track": exchange.TRACK, "format_version": exchange.FORMAT_VERSION,
                                        "state": state}, restoring=True)
+        for dossier in parts["dossiers"]:
+            if dossier.state == "building":
+                self._close_interrupted(dossier, {b.id: b for b in parts["batches"]})
         self.store.replace(**parts, clock=clock)
         if clock is not None:
             self.clock.set(parse_rfc3339(clock))
+
+    @staticmethod
+    def _close_interrupted(dossier: Dossier, batches: dict) -> None:
+        """A build running at an abrupt stop ends `failed`: its in-flight reservations count as billed (D43)."""
+        dossier.spent_units += dossier.inflight
+        batch = batches.get(dossier.batch_id) if dossier.batch_id else None
+        if batch is not None:
+            batch.spent = min(batch.budget, batch.spent + dossier.inflight)
+            if dossier.domain in batch.running:
+                batch.running.remove(dossier.domain)
+        time = dossier.builds_started_at or (dossier.builds[-1]["time"] if dossier.builds else None)
+        if time is not None:
+            dossier.builds.append({"time": time, "outcome": "failed", "spent": dossier.spent_units - dossier.settled_spent,
+                                   "candidates": [], "versions": {}})
+        dossier.state, dossier.inflight, dossier.batch_id = "failed", 0, None
+        dossier.settled_state, dossier.settled_spent = "failed", dossier.spent_units
 
     # -------------------------------------------------------------- control
     async def reset(self, body) -> None:
@@ -234,23 +253,30 @@ class Service:
         return dossier
 
     # -------------------------------------------------------------- builds
-    def _start_build(self, dossier: Dossier) -> None:
+    def _start_build(self, dossier: Dossier, batch=None) -> None:
         dossier.state = "building"
         build_time = format_ts(self.clock.now())
+        dossier.builds_started_at = build_time
         generation = self.store.generation
-        self.store.save_dossier(dossier)
-        dossier.task = asyncio.get_running_loop().create_task(self._build(dossier, generation, build_time))
+        if batch is not None:
+            dossier.batch_id = batch.id
+            batch.running.append(dossier.domain)
+        self.store.save_dossier(dossier, batch=batch)
+        dossier.task = asyncio.get_running_loop().create_task(self._build(dossier, generation, build_time, batch))
 
     def _current(self, dossier: Dossier, generation: int) -> bool:
         return self.store.generation == generation and self.store.dossiers.get(dossier.domain) is dossier
 
-    async def _build(self, dossier: Dossier, generation: int, build_time: str) -> None:
-        def on_charge(cost: int) -> None:
-            if self._current(dossier, generation):
-                dossier.spent_units += cost
-                self.store.save_dossier(dossier)
+    async def _build(self, dossier: Dossier, generation: int, build_time: str, batch=None) -> None:
+        base = dossier.spent_units
 
-        meter = Meter(on_charge, deadline=Deadline(self.gateway.live))
+        def on_update() -> None:
+            # settled spending and in-flight reservations, durable before the next call is made (D43)
+            if self._current(dossier, generation):
+                dossier.spent_units, dossier.inflight = base + meter.spent, meter.reserved
+                self.store.save_dossier(dossier, batch=batch)
+
+        meter = Meter(lambda cost: None, deadline=Deadline(self.gateway.live), batch=batch, on_update=on_update)
         try:
             result = await asyncio.wait_for(run_build(self.gateway, dossier.domain, meter, build_time), BUILD_HARD_LIMIT)
         except asyncio.CancelledError:
@@ -263,10 +289,14 @@ class Service:
             result = None
         if not self._current(dossier, generation):
             return
+        if result is None and meter.budget_blocked:
+            result = ([], {})   # stopped by its batch's budget: it completes with what it obtained (D41)
         feed = self._record_build(dossier, build_time, meter.spent, result)
         dossier.settled_state, dossier.settled_spent = dossier.state, dossier.spent_units
-        dossier.task = None
-        self.store.save_dossier(dossier, feed)
+        dossier.task, dossier.inflight, dossier.batch_id = None, 0, None
+        if batch is not None and dossier.domain in batch.running:
+            batch.running.remove(dossier.domain)
+        self.store.save_dossier(dossier, feed, batch=batch)
 
     def _record_build(self, dossier: Dossier, build_time: str, spent: int, result) -> list[dict]:
         """Append the build to the log; a ready one adds its history entries and feed entries (stage 3)."""
