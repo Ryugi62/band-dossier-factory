@@ -1,22 +1,24 @@
 """Export / import (§10; stage 3, Upgrades): the envelope and strict validation of an imported state.
 
-Three state shapes are accepted (decision D26): this service's own (`schema: dossier-stage-3`,
-builds, history and feed restored unchanged), and stage-2 or stage-1 exports, whose dossiers
-become one ready build each (`upgrade.py`).
+Four state shapes are accepted (decisions D26, D44): this service's own (`schema: dossier-stage-4`,
+with batches), a stage-3 export (builds, history and feed restored; candidates without an origin
+take the host of their URL; no investors), and stage-2 or stage-1 exports, whose dossiers become
+one ready build each (`upgrade.py`).
 """
 from __future__ import annotations
 
-from . import accounts, domains, errors, selection, upgrade
+from . import accounts, domains, errors, lineage, selection, upgrade
 from .clock import parse_rfc3339
 from .pages import KINDS
-from .store import Dossier, Store, User
+from .store import Batch, Dossier, Store, User
 from .support import FIELDS, HEADCOUNT_VALUES, TITLES
-from .timeline import SEVEN
+from .timeline import ALL_FIELDS
 from .upgrade import need as _need
 
 TRACK = "dossier"
 FORMAT_VERSION = 1
-SCHEMA = "dossier-stage-3"
+SCHEMA = "dossier-stage-4"
+SCHEMA_STAGE3 = "dossier-stage-3"
 
 
 def export(store: Store) -> dict:
@@ -74,7 +76,7 @@ def _parse_state(state: dict, restoring: bool = False) -> dict:
         token, uid = _str(t, "token"), _str(t, "user_id")
         _need(uid in ids, "token for unknown user")
         tokens[token] = uid
-    own = state.get("schema") == SCHEMA
+    own = state.get("schema") in (SCHEMA, SCHEMA_STAGE3)
     dossiers = [_parse_own_dossier(d, restoring) if own else _parse_old_dossier(d) for d in state["dossiers"]]
     _need(len({d.domain for d in dossiers}) == len(dossiers), "duplicate domain")
     _need(len({d.id for d in dossiers}) == len(dossiers), "duplicate dossier id")
@@ -93,13 +95,24 @@ def _parse_state(state: dict, restoring: bool = False) -> dict:
         _need(seqs == sorted(set(seqs)), "feed seq order")
         next_seq = state.get("next_seq")
         _need(_is_int(next_seq) and next_seq > (seqs[-1] if seqs else 0), "next_seq")
+    batches = []
+    if state.get("schema") == SCHEMA:
+        _need(isinstance(state.get("batches"), list), "batches")
+        known = {d.domain for d in dossiers}
+        for b in state["batches"]:
+            _need(isinstance(b, dict) and b.get("owner") in ids and _is_int(b.get("budget")) and _is_int(b.get("spent"))
+                  and 0 <= b["spent"] <= b["budget"], "batch")
+            _str(b, "id", 64)
+            _need(isinstance(b.get("domains"), list) and all(x in known for x in b["domains"]), "batch domains")
+            _need(isinstance(b.get("running", []), list), "batch running")
+            batches.append(Batch.from_dict(b))
     return {"users": users, "tokens": tokens, "dossiers": dossiers, "idempotent": idem, "feed": feed,
-            "next_seq": next_seq}
+            "next_seq": next_seq, "batches": batches}
 
 
 def _feed_ok(f) -> bool:
     return (isinstance(f, dict) and _is_int(f.get("seq")) and f["seq"] > 0 and isinstance(f.get("domain"), str)
-            and f.get("field") in SEVEN and f.get("type") in ("change", "correction"))
+            and f.get("field") in ALL_FIELDS and f.get("type") in ("change", "correction"))
 
 
 # ---------------------------------------------------------------- values and candidates
@@ -166,10 +179,8 @@ def _parse_old_dossier(d) -> Dossier:
 
 def _parse_own_dossier(d, restoring: bool = False) -> Dossier:
     _domain_of(d)
-    if restoring and d.get("state") == "building":
-        # a build cut off by an abrupt stop is abandoned: the last completed state, spending kept (D27)
-        d = dict(d, state=d.get("settled_state", "failed"))
-    _need(d.get("state") in ("ready", "failed") and d.get("settled_state", d["state"]) in ("ready", "failed"),
+    running = restoring and d.get("state") == "building"   # closed by the service at start-up (D43)
+    _need(running or d.get("state") in ("ready", "failed") and d.get("settled_state", d["state"]) in ("ready", "failed"),
           "dossier state")
     for key in ("spent_units", "settled_spent"):
         _need(_is_int(d.get(key, 0)) and d.get(key, 0) >= 0, key)
@@ -180,14 +191,19 @@ def _parse_own_dossier(d, restoring: bool = False) -> Dossier:
         _ts(b.get("time"), "build time")
         _need(isinstance(b.get("candidates"), list) and isinstance(b.get("versions"), dict), "build content")
         for c in b["candidates"]:
-            _need(isinstance(c, dict) and c.get("field") in SEVEN, "build candidate field")
-            if c["field"] == "executives":
+            _need(isinstance(c, dict) and c.get("field") in ALL_FIELDS, "build candidate field")
+            if not isinstance(c.get("origin"), str) or not c["origin"]:
+                c["origin"] = lineage.url_host(_str(c, "url"))   # imported without origin (D44)
+            if c["field"] == "investors":
+                _need(isinstance(c.get("value"), str) and c["value"].strip() != "", "investors candidate")
+                _parse_citation(c)
+            elif c["field"] == "executives":
                 _need(c.get("title") in TITLES and isinstance(c.get("value"), str), "executives candidate")
                 _parse_citation(c)
             else:
                 _parse_candidate(c["field"], c)
     for f, entries in d["history"].items():
-        _need(f in SEVEN and isinstance(entries, list), "history field")
+        _need(f in ALL_FIELDS and isinstance(entries, list), "history field")
         for e in entries:
             _need(isinstance(e, dict) and e.get("type") in ("initial", "change", "correction") and _is_int(e.get("build"))
                   and isinstance(e.get("citations"), list), "history entry")

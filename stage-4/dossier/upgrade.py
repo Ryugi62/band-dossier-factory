@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from . import selection, support
+from . import lineage, selection, support
 from .store import Dossier, empty_history
 from .support import FIELDS
 
@@ -43,7 +43,8 @@ def candidates_stage2(name: str, f: dict, retrieved_default: str | None, check_c
         retrieved = c.get("retrieved_at") or retrieved_default
         out.append({"field": name, "value": c["value"], "url": c["url"], "excerpt": c["excerpt"],
                     "provider": c["provider"], "kind": c.get("kind"), "published_at": c.get("published_at"),
-                    "true_from": utc_date(c.get("published_at")), "retrieved_at": retrieved, "learned_at": retrieved})
+                    "true_from": utc_date(c.get("published_at")), "retrieved_at": retrieved, "learned_at": retrieved,
+                    "origin": c.get("origin") or lineage.url_host(c["url"])})
     return out
 
 
@@ -60,7 +61,8 @@ def candidates_stage1(name: str, f: dict, domain: str, researched_at: str | None
             continue
         seen.add((url, provider))
         out.append({"field": name, "value": value, "url": url, "excerpt": excerpt, "provider": provider, "kind": None,
-                    "published_at": None, "true_from": None, "retrieved_at": researched_at, "learned_at": researched_at})
+                    "published_at": None, "true_from": None, "retrieved_at": researched_at, "learned_at": researched_at,
+                    "origin": lineage.url_host(url)})
     return out
 
 
