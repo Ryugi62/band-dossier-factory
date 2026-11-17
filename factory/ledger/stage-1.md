@@ -406,6 +406,7 @@ python3 factory/probes/stage-1/run.py --service http://127.0.0.1:8000 \
 | RD-06 | ★ | D6 | "A replay returns status 200 with the original response body (even if the first answer was 202)." | retry | P11 |
 | RD-07 | | D7 | "Language: builder's choice" | delivery | — |
 | RD-08 | ★ | D8 | "A research claim becomes a citation only if its excerpt is copied from text the service holds for that url … and passes Appendix A for the claimed value; otherwise dropped." | support | served-text check, P07 |
+| RD-09 | ★ | D9 | "`USD12m` (no space) … Waived as spec-ambiguous … Verifier oracle and probes must not rely on `USD<digits>` without a space." | support | — (no probe or corpus page uses that form; oracle self-test has no such case) |
 
 ## Rows added by the blind re-derivation
 
@@ -449,4 +450,4 @@ From `factory/reviews/stage-1-blind.md`.
 
 ## Row count
 
-310 rows (302 specification rows + 8 planner-decision rows), 156 marked ★.
+311 rows (302 specification rows + 9 planner-decision rows), 157 marked ★.
