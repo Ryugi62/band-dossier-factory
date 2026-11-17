@@ -379,7 +379,7 @@ def values_oracle(c, token, dom, true_ats, as_ofs):
             c.check(sorted(gf) == sorted(F7), f"values fields {sorted(gf)} [T5-08]")
             for f in F7:
                 alts = []
-                for nh in (False, True):
+                for nh in (False,):   # D33: a null-dated version holds on no date
                     cands = [x for x in O.candidates_at(known, ta, nh) if x["field"] == f]
                     alts.append(O.select_exec(cands) if f == "executives" else O.select(cands))
                 g = gf.get(f) or {}
@@ -712,7 +712,7 @@ def _check_upgraded(c, tok, old, stage):
                         cands = [dict(x, true_from=O.page_true_from(None, x.get("published_at")), field=f)
                                  for x in od["fields"][f].get("candidates") or []]
                         held = [x for x in cands if x["true_from"] is not None]   # null-dated versions: either reading
-                        alts = [O.select(held), O.select(cands)]
+                        alts = [O.select(held)]   # D33: null-dated versions hold on no date
                         g = r.body["fields"][f]
                         c.check(any(O.same_value(g.get("value"), a[0]) for a in alts),
                                 f"{dom}: values {f} {g.get('value')!r} after upgrade, versions give {[a[0] for a in alts]} [T9-09, TD-25]")

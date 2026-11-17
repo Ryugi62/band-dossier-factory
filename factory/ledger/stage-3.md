@@ -275,10 +275,14 @@ From `factory/reviews/stage-3-blind.md`.
 | B02..B12, U02 | stage-2 screen probes re-run against stage 3 |
 | B13 | executives in separate markup, six field testids, `/contested` ignores executives |
 
-## Note on one ambiguity (accepted both ways by the probes)
+## Note on T5-05 (settled by D33)
 
-T5-05: "A version whose `true_from` is null holds from no date" can be read two ways: the version holds on every date (no start), or it holds on no date. VALUES accepts a field when its answer matches either reading. A planner decision would let the probes assert one reading.
+T5-05: planner decision D33 settles "holds from no date". A version whose `true_from` is null holds on **no** date, so its candidates are never candidates at any `true_at`. It still replaces every earlier version of its URL, and it ends earlier versions as the surrounding sentences say. VALUES asserts this reading (row TD-33).
+
+| ID | ★ | Decision | Text (from decisions.md) | Kind | Probe |
+|---|---|---|---|---|---|
+| TD-33 | ★ | D33 | a page version whose `true_from` is null holds on no date; its candidates are never candidates at any `true_at`; it still replaces/ends other versions | behaviour | VALUES (C01), U4 |
 
 ## Row count
 
-122 rows: 97 new stage-3 specification rows, 6 export state rows, 10 changed earlier rows, 9 planner-decision rows; 102 marked ★. The 311 stage-1 and 184 stage-2 rows remain binding except as changed by TC-01..TC-10.
+123 rows: 97 new stage-3 specification rows, 6 export state rows, 10 changed earlier rows, 10 planner-decision rows; 103 marked ★. The 311 stage-1 and 184 stage-2 rows remain binding except as changed by TC-01..TC-10.
