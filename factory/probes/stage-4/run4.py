@@ -557,6 +557,50 @@ def e03(c):
     c.mock_reset(0)
 
 
+@probe("E04", "B1-09 B1-11 B1-12 I5-01 TD-41 TD-47", "D47: a budget that cannot cover every build goes to the first domains; "
+       "a covered budget still runs builds concurrently within the 8 bound")
+def e04(c):
+    sample = ["windrush-bakery.test", "corvid-security.test", "mosaic-freight.test", "halvorsen-robotics.test",
+              "quillmate.test", "pemberton-analytics.test", "ferncliff-foods.test", "larkspur-health.test"]
+    for doms, budget in ((sample, 300), (sample[:3], 75)):
+        c.reset()
+        c.mock_reset(0)
+        ada = c.login("ada@example.com")
+        r = post_batch(c, ada, doms, budget)
+        if not c.expect(r, 202, what=f"batch of {len(doms)} with budget {budget}"):
+            continue
+        b = wait_batch(c, ada, r.body["batch_id"], 120)
+        if not c.check(b and b["state"] == "done", f"budget {budget}: batch not done {b}"):
+            continue
+        total = sum(x.get("cost") or 0 for x in c.mock_log())
+        c.check(total <= budget and b["spent_units"] == total, f"budget {budget}: billed {total}, batch spent {b['spent_units']} "
+                                                              f"[B1-09, I5-01]")
+        known = []
+        for dom in doms:
+            d = c.get(ada, dom).body
+            c.check(d["state"] == "ready" and d["spent_units"] <= 80, f"{dom}: {d['state']} spent {d['spent_units']} [B1-11, B1-12]")
+            known.append(sum(1 for f in FIELDS if d["fields"][f]["value"] is not None))
+        c.check(known[0] > 0, f"budget {budget} over {len(doms)} domains: the first domain learned nothing (known fields per domain "
+                              f"{known}) [TD-47]")
+        with_known = [k > 0 for k in known]
+        c.check(with_known == sorted(with_known, reverse=True),
+                f"budget {budget}: domains that reached known fields {with_known} are not the first ones of `domains` [TD-47]")
+    c.reset()
+    c.mock_reset(0)
+    ada = c.login("ada@example.com")
+    t = time.monotonic()
+    r = post_batch(c, ada, sample[:3], 1000)
+    if c.expect(r, 202, what="covered batch"):
+        b = wait_batch(c, ada, r.body["batch_id"], 60)
+        el = time.monotonic() - t
+        c.check(b and b["state"] == "done" and el <= 10.5, f"covered budget: 3 builds took {el:.1f}s from the batch request "
+                                                          f"(concurrent, within the 8 bound) [TD-47, R8-09]")
+        for dom in sample[:3]:
+            d = c.get(ada, dom).body
+            c.check(d["state"] == "ready", f"{dom} {d['state']}")
+            c.ev(d, 0)
+
+
 @probe("F01", "P1-01..P1-04 TD-42", "provider failure: other providers failing, research failing, every call failing (time bound)")
 def f01(c):
     c.reset()
