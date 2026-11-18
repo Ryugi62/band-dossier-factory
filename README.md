@@ -6,6 +6,14 @@ The person wrote no code under `stage-N/`; each stage's only human input was one
 
 ## Run it in three minutes (mock web, no key)
 
+```sh
+git clone https://github.com/Ryugi62/band-dossier-factory && sh band-dossier-factory/demo.sh   # prints "ready: http://localhost:8080"
+```
+
+`demo.sh` clones the organizer's repository next to this one, builds the mock web and stage 4, starts both and waits for
+`/health` (measured 2026-11-18: 39 s for both image builds without layer cache, 2 s to healthy; `sh demo.sh stop` cleans up).
+The same steps by hand:
+
 The factory's four stages were built and checked against the organizer's mock web, so this is the path
 that reproduces. Needs Docker and Python 3.12 (the harness needs `pip install -r harness/requirements.txt`).
 
