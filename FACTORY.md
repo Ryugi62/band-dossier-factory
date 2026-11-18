@@ -6,6 +6,28 @@ The mandates in `mandates/` say nothing about the problem being solved; the task
 specification come in the human's dispatch message and are pasted in full by the planner into
 every handoff.
 
+## How this differs from similar work (same table as the README)
+
+| Similar work | What it is | What it does not have that this entry has |
+|---|---|---|
+| [Verifier Factory](https://hackersquad.io/events/band-dark-factory-buildathon-san-francisco) (first entry listed for this event) | Five seats: plan, research, verify, budget, record; its submitted run stopped at a model-provider limit | Spend is audited per call: units per correct field are measured for every stage (5.591 to 9.377), and the cost auditor can reject a commit; the planner's mandate has a resume-and-blocker rule for provider limits (`mandates/planner.md`, lines 71 to 75) |
+| [GeekForge](https://github.com/jacedeno/geekforge-dark-factory) (entry of the October edition of the same event, 3 seats) | Plan, build, verify; reports 89 minutes and 110 M tokens in total | Totals only, no cost per correct output; here a fourth seat prices every call from the call log |
+| [Nimble web search agents](https://docs.nimbleway.com/nimble-sdk/web-search-agents/best-practices/evaluating-results.md) (the research vendor of this track) | One 25-unit research run per company; its guide grades results, it does not verify them | On the same sample companies one research run alone costs at least 30.0 units per field (24 runs, 600 units, 20 cited fields, counting every cited field as correct); this service costs 5.591 to 9.377 and a verifier checks every cited excerpt |
+| [Organizer sample mandate](https://github.com/band-ai/sf-buildathon-2026) | Toy seat instructions for the track | No cost seat and no ledger; this entry's mandates are domain-free and reused for all four stages |
+
+Patents: KIPRIS (506 hits for a Korean query on agent cost audit and code-generation verification) and Google
+Patents (1,336 hits for a multi-agent verifier and cost-audit query), 18 November 2026; no top-ranked hit
+describes a per-call cost auditor seat for a code factory. This is a title-level look at the first results, not a
+proof that none exists.
+
+## The measure (same definition as the README and the deck)
+
+**Units per correct field** = metered units charged in the mock web's call log over a fixed workload of 24 builds
+(12 sample companies, 2 epochs), divided by the number of correct fields those builds returned. One unit is one
+cost unit of the mock web's price table (search 1, 5 or 15, extract 1 per URL, research 25).
+**Baseline:** one 25-unit research run per company and nothing else: 600 units for 20 cited fields = **30.0 units per field at best**
+(8 of 24 runs return no field; every cited field is counted as correct, so the true baseline is not lower). Stage 1 to 4 here: 5.591, 8.935, 9.377, 8.210, which is at least 3.2 to 5.4 times cheaper per field.
+
 ## Seats
 
 | Seat | Harness / model | Owns | Never does |
