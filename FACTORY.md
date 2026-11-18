@@ -10,9 +10,10 @@ every handoff.
 
 | Similar work | What it is | What it does not have that this entry has |
 |---|---|---|
-| [Verifier Factory](https://hackersquad.io/events/band-dark-factory-buildathon-san-francisco) (first entry listed for this event) | Five seats: plan, research, verify, budget, record; its submitted run stopped at a model-provider limit | Spend is audited per call: units per correct field are measured for every stage (5.591 to 9.377), and the cost auditor can reject a commit; the planner's mandate has a resume-and-blocker rule for provider limits (`mandates/planner.md`, lines 71 to 75) |
+| [Verifier Factory](https://hackersquad.io/events/band-dark-factory-buildathon-san-francisco) (first entry listed for this event) | Five seats: plan, research, verify, budget, record; its Budget Keeper holds one shared allowance. As of 18 November 2026 its listing says the submitted run paused on a provider account limit and "the staged build continues to the Nov 20 deadline" (still in progress) | Spend is audited per call: units per correct field are measured for every stage (5.591 to 9.377), and the cost auditor can reject a commit; the planner's mandate has a resume-and-blocker rule for provider limits (`mandates/planner.md`, lines 71 to 75) |
 | [GeekForge](https://github.com/jacedeno/geekforge-dark-factory) (entry of the October edition of the same event, 3 seats) | Plan, build, verify; reports 89 minutes and 110 M tokens in total | Totals only, no cost per correct output; here a fourth seat prices every call from the call log |
 | [Nimble web search agents](https://docs.nimbleway.com/nimble-sdk/web-search-agents/best-practices/evaluating-results.md) (the research vendor of this track) | One 25-unit research run per company; its guide grades results, it does not verify them | On the same sample companies one research run alone costs at least 30.0 units per field (24 runs, 600 units, 20 cited fields, counting every cited field as correct); this service costs 5.591 to 9.377 and a verifier checks every cited excerpt |
+| [Onsen](https://hackersquad.io/events/band-dark-factory-buildathon-san-francisco) (second entry listed for this event, 18 November 2026) | Six agents; "The Examiner writes hidden acceptance scenarios from the spec and posts only their SHA-256"; a Scout answers factual questions from the live web with Nimble; a Nap Guard wakes the human once | Its listing names no cost seat and gives no spend figure; here a fourth seat prices every call and the model tokens are measured from the session logs (below). It has what this entry lacks: a sealed hidden exam and a live-web research agent |
 | [Organizer sample mandate](https://github.com/band-ai/sf-buildathon-2026) | Toy seat instructions for the track | No cost seat and no ledger; this entry's mandates are domain-free and reused for all four stages |
 
 Patents: KIPRIS (506 hits for a Korean query on agent cost audit and code-generation verification) and Google
@@ -26,7 +27,7 @@ proof that none exists.
 (12 sample companies, 2 epochs), divided by the number of correct fields those builds returned. One unit is one
 cost unit of the mock web's price table (search 1, 5 or 15, extract 1 per URL, research 25).
 **Baseline:** one 25-unit research run per company and nothing else: 600 units for 20 cited fields = **30.0 units per field at best**
-(8 of 24 runs return no field; every cited field is counted as correct, so the true baseline is not lower). Stage 1 to 4 here: 5.591, 8.935, 9.377, 8.210, which is at least 3.2 to 5.4 times cheaper per field.
+(8 of 24 runs return no field; every cited field is counted as correct, so the true baseline is not lower). Stage 1 to 4 here: 5.591, 8.935, 9.377, 8.210, which is at least 3.2 to 5.4 times cheaper per field than this baseline. The baseline is our own simple one, not the organizer's benchmark (its definition is not public). Stage 1 counts 6 fields per company; stages 3 and 4 count 8 (executives and investors added), so the four figures are not like for like.
 
 ## Seats
 
@@ -92,9 +93,24 @@ restarted and had to be started again before the stage-2 dispatch. Work time sum
 stages is about 4 h 48 min; wall clock from first dispatch to the stage-4 close is about 5 h 32 min.
 "Units" (all figures in this table are on the sample providers of the local mock web, not the live web) are the mock web's metered cost units (research, search, render, plain fetch); the
 largest single build used 34, 59, 76 and 77 of the 80-unit cap in stages 1 to 4.
-**Model spend in money or tokens was not captured by the factory**; the room log holds every
-seat's calls but no price or token count, so no money figure is claimed here. What the room log
-does measure (`room.json`, 2,366 entries, 04:57 to 10:29 UTC):
+Model spend was not captured by the factory itself while it ran, but each seat is a Claude Code session whose log
+records the usage of every assistant message. Summing those logs afterwards (de-duplicated by message id;
+method and output in `docs/model-spend.txt`) gives, for the four seats:
+
+| Seat | Model | Messages | Input | Output | Cache write | Cache read | Total tokens | Est. USD |
+|---|---|---|---|---|---|---|---|---|
+| builder | claude-opus-5-5 | 301 | 644 | 377,923 | 1,161,129 | 142,456,094 | 143,995,790 | 45.34 |
+| verifier | claude-opus-5-5 | 249 | 570 | 489,504 | 1,063,757 | 107,175,017 | 108,728,848 | 39.74 |
+| cost-auditor | claude-sonnet-5-5 | 82 | 186 | 100,799 | 485,233 | 15,847,924 | 16,434,142 | 6.12 |
+| planner | claude-sonnet-5-5 | 118 | 252 | 101,406 | 268,588 | 18,252,497 | 18,622,743 | 5.74 |
+| **all four** | | 750 | 1,652 | **1,069,632** | 2,978,707 | 283,731,532 | **287,781,523** | **96.94** |
+
+Read the total with care: almost all of it (283,731,532 tokens) is cache reads, which the model re-reads on every turn; the output
+the seats wrote is 1,069,632 tokens. Dollars are an estimate at public list prices (Opus 5.5 $4 per million input and
+$20 output, Sonnet 5.5 $2 and $10, cache read $0.20, every cache write was the 1-hour kind at 2x input). They are not a
+bill: what was actually charged depends on the operator's Claude plan, and an unofficial sum of logs can double-count a retried turn.
+The session logs are on the operator's machine, not in this repository, so the method header and the
+output in that file are the record. What the room log itself measures (`room.json`, 2,366 entries, 04:57 to 10:29 UTC):
 
 | Seat | Tool calls | Messages to the room | Room-visible characters | Share of characters |
 |---|---|---|---|---|
@@ -104,11 +120,10 @@ does measure (`room.json`, 2,366 entries, 04:57 to 10:29 UTC):
 | cost-auditor | 118 | 6 | 201,448 | 6.4% |
 | human | 0 | 4 (the four stage dispatches) | 8,866 | 0.3% |
 
-The 3.14 million room-visible characters are a lower bound on what the seats processed (roughly
-0.8 million tokens at about four characters per token); prompts, model-internal reasoning and file
-reads that were not echoed to the room are not in the export. The four human messages are the stage
-dispatches at `room.json` `messages[4]`, `[748]`, `[1216]` and `[1652]`; nothing else from the human
-reaches the room.
+The 3.14 million room-visible characters are only what the seats echoed to the room; the session logs above hold the full
+token counts. The four human messages are the stage dispatches at `room.json` `messages[4]`, `[748]`, `[1216]` and `[1652]`;
+nothing else from the human reaches the room. (Commit `4bcdaa0` replaced local paths in the `factory/` notes with placeholders and `ebe9a6d` restored the seats' original
+text, so `factory/` is what the seats wrote; both are in the history, which was not rewritten.)
 
 ## How the factory catches bad work
 
@@ -133,7 +148,7 @@ reaches the room.
 - The first stage-4 acceptance was premature relative to its own cost finding, and the rework round fixed it
   at the price of a second review round (stage 4 took 1 h 27 min against about 1 h for stages 2 and 3).
 - The margin to the per-build cap is thin on one company (77 of 80 units at stage 4).
-- Not measured: money or token spend, seat idle time, and any live-web accuracy beyond the single
+- Not measured: a billed amount (the dollar figure above is a list-price estimate), seat idle time, and any live-web accuracy beyond the single
   `dossier-runway.com.json` build.
 - The live build of `runway.com` (stage-4, own Nimble trial key, run twice with the same outcome) finished
   `ready` with every field `unknown`. The build log shows the search step spending the whole per-build cap
