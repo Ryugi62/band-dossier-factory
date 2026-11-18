@@ -54,8 +54,12 @@ curl -s localhost:8080/health                                        # {"status"
 ## Limit on the live web
 
 On the live web the service did **not** fill the fields. `dossier-runway.com.json` (stage 4, own Nimble trial
-key, run twice) is `ready` with all 8 fields `unknown` (value `null`): the search step spent 79 of the 80-unit per-build cap
-and extraction was skipped (`FACTORY.md`, "What did not work"). All unit figures below are on the mock web's
+key, run twice) is `ready` with all 8 fields `unknown` (value `null`) at 79 of the 80-unit per-build cap. Re-measured on 18 November
+by rebuilding the unchanged stage 4 with one extra log line per call: `runway.com` and `stripe.com` both end `ready`, 80 units,
+all 8 fields unknown. The 80 units were 25 for the research run, 13 searches, 32 successful plain page probes (1 unit each) and
+10 probes that timed out or were refused but billed; the 3-unit rendered reads were skipped for lack of units, and only
+rendered text becomes a candidate (`FACTORY.md`, "What did not work"). The cause is the budget split, not only provider
+blocking (the 403s and 45 s timeouts took 10 of the 80 units). All unit figures below are on the mock web's
 sample providers. We did not edit the stage folder or the response file after the run.
 
 ## Model spend (measured from the seats' session logs)

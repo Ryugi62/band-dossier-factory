@@ -159,6 +159,9 @@ text, so `factory/` is what the seats wrote; both are in the history, which was 
   and took up to about 45 s, and results mixed in other companies named "Runway". The sample providers never
   showed this because they answer fast and unambiguously. We left the stage folder as the factory delivered it
   and did not edit the response file; the gap is the factory's budget split under live latency.
+  Correction, 19 November, from a per-call tally of a rebuild of the same stage 4 (runway.com and stripe.com, 80 units each):
+  the cap was not spent by search alone but by 25 (research) + 13 (searches) + 42 (plain page probes, 10 of them lost or refused
+  but billed); no rendered read (3 units, the only step that yields candidates) was left to run.
 
 ## Reuse
 

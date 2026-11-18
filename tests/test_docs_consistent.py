@@ -25,3 +25,11 @@ def test_readme_old_figure_only_in_correction_sentence():
 def test_readme_does_not_deny_the_web_page():
     assert "There is no web page" not in README
     assert "http://localhost:8080/" in README
+
+
+def test_limit_section_names_the_measured_cause():
+    """18 Nov re-measure: the cap went to research 25 + 13 searches + plain probes and lost calls, not to search alone."""
+    assert "the search step spent 79 of the 80-unit per-build cap" not in README
+    limit = README.split("## Limit on the live web")[1].split("## Model spend")[0]
+    for needle in ("25", "13 searches", "probe", "rendered"):
+        assert needle in limit, needle
