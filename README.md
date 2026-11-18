@@ -12,7 +12,23 @@ git clone https://github.com/Ryugi62/band-dossier-factory && sh band-dossier-fac
 
 `demo.sh` clones the organizer's repository next to this one, builds the mock web and stage 4, starts both and waits for
 `/health` (measured 2026-11-18: 39 s for both image builds without layer cache, 2 s to healthy; `sh demo.sh stop` cleans up).
-The same steps by hand:
+
+## Try it with your own company (live API, not a stored screen)
+
+There is no web page; the input is the HTTP request. After `demo.sh` prints "ready", send your own domain and read the result
+(measured 2026-11-19 on a fresh clone: `corvid-security.test` gave 8 fields, 56 of 80 units; a batch with `"budget_units": 30` ended at `spent_units` 30, never above):
+
+```sh
+TOKEN=$(curl -s -X POST localhost:8080/auth/signup -H 'content-type: application/json' -d '{"email":"you@example.com","password":"correct horse","display_name":"You"}' | sed 's/.*"token": *"\([^"]*\)".*/\1/')
+curl -s -X POST localhost:8080/batches -H "Authorization: Bearer $TOKEN" -H 'Idempotency-Key: b1' -H 'content-type: application/json' -d '{"domains":["ostrava-mobility.test","halvorsen-robotics.test"],"budget_units":30}'   # then GET /batches/<batch_id>: spent_units stops at 30
+curl -s -X POST localhost:8080/dossiers -H "Authorization: Bearer $TOKEN" -H 'Idempotency-Key: d1' -H 'content-type: application/json' -d '{"domain":"corvid-security.test"}'   # wait 10 s, GET /dossiers/corvid-security.test: fields, citations, spent_units <= 80
+```
+
+The mock web knows only the organizer's sample companies (`ashgrove-solar`, `brightwater-labs`, `corvid-security`, `ferncliff-foods`,
+`halvorsen-robotics`, `larkspur-health`, `mosaic-freight`, `ostrava-mobility`, `pemberton-analytics`, all `.test`); any other domain returns all 8 fields
+`unknown`. If your shell already sets `PORT`, run `PORT=8080 sh band-dossier-factory/demo.sh` (demo.sh reads it).
+
+### The same startup by hand (without demo.sh)
 
 The factory's four stages were built and checked against the organizer's mock web, so this is the path
 that reproduces. Needs Docker and Python 3.12 (the harness needs `pip install -r harness/requirements.txt`).
