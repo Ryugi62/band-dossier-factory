@@ -131,6 +131,9 @@ text, so `factory/` is what the seats wrote; both are in the history, which was 
   slow live providers (ledger rows R8-12). The cost auditor had accepted the same commit, so spend
   review alone would have shipped it. The builder answered with `46680d2` and `9166a28` (whole-build
   deadline, per-call end-by-290 s, a bound under refusals, unit tests); round 2 accepted.
+  This is the pattern Band's loop-engineering post names ("the verifier, not the generator, is the
+  bottleneck", Ofer Mendelevitch, band.ai/blog/loop-engineering-meet-band-desktop, 2026-07-19): here the
+  generator's commit `f72df40` passed spend review and only the verifier's REJECT changed the code.
 - **Stage 4, round 1 accepted but reopened.** After `97cc83a` was accepted, the cost auditor's
   non-blocking finding F1 (a batch whose budget could not cover every build spent it on the first
   phases of all builds and learned nothing: 8-12 domains with budget 300 gave 0 known fields) and the
