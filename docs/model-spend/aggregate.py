@@ -5,7 +5,7 @@ Reads usage.jsonl next to this file (usage fields only; extract.py made it). Run
 import json,glob,os,collections,sys
 HERE=os.path.dirname(os.path.abspath(__file__))
 # Public list prices, USD per million tokens: input, output, cache read, cache write 5 min (1.25x input), cache write 1 h (2x input)
-P={'claude-opus-5-5':(4.0,20.0,0.20,5.0,8.0),'claude-sonnet-5-5':(2.0,10.0,0.20,2.5,4.0)}
+P={'claude-opus-5-5':(4.0,20.0,0.20,5.0,8.0),'claude-sonnet-5-5':(2.0,10.0,0.10,2.5,4.0)}
 seats=['builder','verifier','cost-auditor','planner']
 def run(lo=None,hi=None):
     tot=collections.defaultdict(lambda:collections.Counter()); cost=collections.Counter(); unk=set()
