@@ -95,7 +95,7 @@ stages is about 4 h 48 min; wall clock from first dispatch to the stage-4 close 
 largest single build used 34, 59, 76 and 77 of the 80-unit cap in stages 1 to 4.
 Model spend was not captured by the factory itself while it ran, but each seat is a Claude Code session whose log
 records the usage of every assistant message. Summing those logs afterwards (de-duplicated by message id;
-method and output in `docs/model-spend.txt`) gives, for the four seats:
+method and output in `docs/model-spend.txt`, re-runnable from `docs/model-spend/usage.jsonl` with `aggregate.py`) gives, for the four seats:
 
 | Seat | Model | Messages | Input | Output | Cache write | Cache read | Total tokens | Est. USD |
 |---|---|---|---|---|---|---|---|---|

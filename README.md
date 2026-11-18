@@ -40,7 +40,7 @@ Four Claude Code sessions, 750 assistant messages, 287,781,523 tokens in total, 
 tokens**; 283,731,532 are cache reads. Priced at public list prices (Opus 5.5 $4 in / $20 out, Sonnet 5.5 $2 / $10,
 cache read $0.20, 1-hour cache write 2x input) this is an estimated **$96.94**. Per seat in `FACTORY.md`; the
 method and per-seat output are in `docs/model-spend.txt`. The session logs live on the
-operator's machine and are not in this repository, so these figures cannot be re-run from the clone.
+operator's machine; their usage fields (no text) are in `docs/model-spend/usage.jsonl`, and `python3 docs/model-spend/aggregate.py` re-runs the sum from the clone.
 The demo video is the 18 November 07:20 version, recorded before this was measured, and says spend was not measured:
 the video was not changed, and the cost figures in this repository are the source of truth.
 
@@ -90,12 +90,13 @@ cost unit of the mock web's price table (search 1, 5 or 15, extract 1 per URL, r
 - `room.json` is the room downloaded from Band, unedited.
 - `dossier-runway.com.json` is the `GET /dossiers/runway.com` response of the highest stage,
   built against the live web.
-- `docs/ui/` holds screenshots of stage 4 taken by the person after the run (not seat output); the stage folders are unchanged.
+- `docs/ui/` holds screenshots of stage 4 taken after the run by `docs/ui/capture.py` (Docker + headless Chromium, no hand editing; not seat output); the stage folders are unchanged.
+- `docs/model-spend/` holds the raw usage fields (`usage.jsonl`: seat, model, time, token counts per message; no text, paths or keys), `aggregate.py` that re-sums them to the figures below, and `test_aggregate.py` (`python3 -m unittest docs/model-spend/test_aggregate.py` reproduces 287,781,523 tokens and USD 96.94).
 - Git history is the seats' own commits, not rewritten.
 
 ## The service on screen (375 px and 1280 px)
 
-Captured from stage 4 built from this repository in Docker against the mock web (`docs/ui/`). The same four states at both widths.
+Captured by `python3 docs/ui/capture.py` from stage 4 built from this repository in Docker against the mock web (`docs/ui/`). The same four states at both widths.
 
 | State | 375 px | 1280 px |
 |---|---|---|
