@@ -9,7 +9,7 @@
 # STAGE (default stage-4) can be set in the environment.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
-org="$here/../sf-buildathon-2026"
+org="${ORG:-$here/../sf-buildathon-2026}"
 port="${PORT:-8080}"
 stage="${STAGE:-stage-4}"
 net=dossier-demo
@@ -32,8 +32,13 @@ docker run --rm -d --name dossier-demo-svc --network "$net" -p "$port:8080" -e P
   -e NIMBLE_API_KEY=local -e NIMBLE_BASE_URL=http://dossier-demo-web:8080/nimble \
   -e TAVILY_API_KEY=local -e TAVILY_BASE_URL=http://dossier-demo-web:8080/tavily "dossier-$stage" >/dev/null
 
-i=0
+sleep 3  # let a crashing mock web show up before the first check
+i=3
 while [ $i -lt 180 ]; do
+  if [ "$(docker inspect -f '{{.State.Running}}' dossier-demo-web 2>/dev/null)" != true ]; then
+    echo "mock web exited: its corpus folder is probably not shared with the Docker VM (use a checkout under your home folder); run the two docker run lines by hand without -d to see why" >&2
+    exit 1
+  fi
   if curl -fs "localhost:$port/health" 2>/dev/null | grep -q '"ok"'; then
     echo "ready: http://localhost:$port  (health ok after ${i}s; next steps in RUN.md; stop with: sh demo.sh stop)"
     exit 0
