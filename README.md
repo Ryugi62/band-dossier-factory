@@ -15,7 +15,7 @@ git clone https://github.com/Ryugi62/band-dossier-factory && sh band-dossier-fac
 
 ## Try it with your own company (live API, not a stored screen)
 
-There is no web page; the input is the HTTP request. After `demo.sh` prints "ready", send your own domain and read the result
+After `demo.sh` prints "ready", open http://localhost:8080/ in a browser (sign up, enter a domain; the same page shows the empty, building, error, ready and contested states, see "The service on screen" below), or send the same input as an HTTP request and read the result
 (measured 2026-11-19 on a fresh clone: `corvid-security.test` gave 8 fields, 56 of 80 units; a batch with `"budget_units": 30` ended at `spent_units` 30, never above):
 
 ```sh
@@ -116,7 +116,7 @@ cost unit of the mock web's price table (search 1, 5 or 15, extract 1 per URL, r
 - `dossier-runway.com.json` is the `GET /dossiers/runway.com` response of the highest stage,
   built against the live web.
 - `docs/ui/` holds screenshots of stage 4 taken after the run by `docs/ui/capture.py` (Docker + headless Chromium, no hand editing; not seat output); the stage folders are unchanged.
-- `docs/model-spend/` holds the raw usage fields (`usage.jsonl`: seat, model, time, token counts per message; no text, paths or keys), `aggregate.py` that re-sums them to the figures below, and `test_aggregate.py` (`python3 -m unittest docs/model-spend/test_aggregate.py` reproduces 287,781,523 tokens and USD 96.94).
+- `docs/model-spend/` holds the raw usage fields (`usage.jsonl`: seat, model, time, token counts per message; no text, paths or keys), `aggregate.py` that re-sums them to the figures below, and `test_aggregate.py` (`python3 -m unittest docs/model-spend/test_aggregate.py` reproduces 287,781,523 tokens and USD 93.53).
 - Git history is the seats' own commits, not rewritten.
 
 ## The service on screen (375 px and 1280 px)
