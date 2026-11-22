@@ -47,3 +47,8 @@ def test_live_diag_is_labelled_and_matches_files():
     assert "not a factory result" in README and "docs/live-diag/" in README
     assert "4 and 6 of 8" in README
     assert "not part of the submitted factory run" in (d / "README.md").read_text()
+
+
+def test_like_for_like_reference_matches_cost_audit():
+    cost = (ROOT / "factory" / "costs" / "stage-3-r1.md").read_text()
+    assert "| 11.007 | 8.935 |" in cost and "11.007 units per field" in README

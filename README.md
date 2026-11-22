@@ -96,7 +96,7 @@ proof that none exists.
 (12 sample companies, 2 epochs), divided by the number of correct fields those builds returned. One unit is one
 cost unit of the mock web's price table (search 1, 5 or 15, extract 1 per URL, research 25).
 **Baseline:** one 25-unit research run per company and nothing else: 600 units for 20 cited fields = **30.0 units per field at best**
-(8 of 24 runs return no field; every cited field is counted as correct, so the true baseline is not lower). Stage 1 to 4 here: 5.591, 8.935, 9.377, 8.210, which is at least 3.2 to 5.4 times cheaper per field than this baseline. The baseline is our own simple one, not the organizer's benchmark (its definition is not public). Stage 1 counts 6 fields per company; stage 3 counts 7 (executives added) and stage 4 counts 8 (investors added), so the four figures are not like for like.
+(8 of 24 runs return no field; every cited field is counted as correct, so the true baseline is not lower). Stage 1 to 4 here: 5.591, 8.935, 9.377, 8.210, which is at least 3.2 to 5.4 times cheaper per field than this baseline. The baseline is our own simple one, not the organizer's benchmark (its definition is not public). Stage 1 counts 6 fields per company; stage 3 counts 7 (executives added) and stage 4 counts 8 (investors added), so the four figures are not like for like; on the six original fields only, stage 3 costs 11.007 units per field (`factory/costs/stage-3-r1.md`, 'six fields only (reference)'), so the like-for-like figure at stage 3 is above the 8.935 of stage 2 and still 2.7 times below the baseline.
 
 ## Result in numbers
 
