@@ -33,3 +33,17 @@ def test_limit_section_names_the_measured_cause():
     limit = README.split("## Limit on the live web")[1].split("## Model spend")[0]
     for needle in ("25", "13 searches", "probe", "rendered"):
         assert needle in limit, needle
+
+
+def test_live_diag_is_labelled_and_matches_files():
+    """docs/live-diag: post-run diagnostic; README counts equal the stored JSON and it says it is not a factory result."""
+    import json
+    d = ROOT / "docs" / "live-diag"
+    for name, known, contested in (("fix2-runway.com.json", 2, 2), ("fix2-stripe.com.json", 3, 3)):
+        st = [v["status"] for v in json.loads((d / name).read_text())["fields"].values()]
+        assert (st.count("known"), st.count("contested")) == (known, contested), name
+    for name in ("diag2.json", "diag3.json"):
+        assert all(v["status"] == "unknown" for v in json.loads((d / name).read_text())["fields"].values())
+    assert "not a factory result" in README and "docs/live-diag/" in README
+    assert "4 and 6 of 8" in README
+    assert "not part of the submitted factory run" in (d / "README.md").read_text()

@@ -1,0 +1,61 @@
+--- /Users/ryugi62/band-work/final-clone/stage-4/dossier/pipeline.py	2026-11-17 19:56:05
++++ stage-4/dossier/pipeline.py	2026-11-19 07:22:40
+@@ -30,6 +30,11 @@
+ from .provider import Claim, Gateway, Meter, SearchHit
+ 
+ SNIPPET_CHARS = 300
++# Live pages are probed with a plain extract (1 unit) and rendered (3 units) only when the probe shows support.
++# Probing every page at once spent the whole 80-unit cap on probes before any render could start, so no page
++# became evidence (runway.com and stripe.com: 25 research + 13 searches + 42 probes, 0 renders, all unknown).
++# At most PROBE_SLOTS pages are in flight; a page keeps its slot until its render is done.
++PROBE_SLOTS = 6
+ FIELD_QUERY_WORDS = {
+     "legal_name": "legal name registered name registered as legal entity",
+     "hq_city": "headquartered headquarters head office based in registered office",
+@@ -99,6 +104,7 @@
+         self.headers: dict[str, dict | None] = {}
+         self.rendered: dict[str, dict] = {}
+         self._fetching: dict[str, asyncio.Future] = {}
++        self._slots = asyncio.Semaphore(PROBE_SLOTS)
+ 
+     # -------------------------------------------------------------- pages from searches
+     def add_hits(self, hits: list[SearchHit]) -> None:
+@@ -129,6 +135,10 @@
+             self.rendered[url] = header
+ 
+     async def probe_then_render(self, url: str) -> None:
++        async with self._slots:
++            await self._probe_then_render(url)
++
++    async def _probe_then_render(self, url: str) -> None:
+         text = await self.gateway.extract(self.meter, url)
+         if text is not None:
+             self.headers.setdefault(lineage.url_key(url), pages.header_values(pages.split_prose(text)[0]))
+--- /Users/ryugi62/band-work/final-clone/stage-4/tests/test_pipeline.py	2026-11-17 19:56:05
++++ stage-4/tests/test_pipeline.py	2026-11-19 07:22:40
+@@ -143,3 +143,25 @@
+ 
+ if __name__ == "__main__":
+     unittest.main()
++
++
++class SlowGateway(FakeGateway):
++    """Like the network: a call yields before it is paid, so concurrent probes all reserve before any render."""
++
++    async def extract(self, meter, url, render=False):
++        await asyncio.sleep(0)
++        return await super().extract(meter, url, render)
++
++
++class LiveBudgetSplit(unittest.TestCase):
++    """Live web: plain probes (1 unit each) must not spend the units that rendering needs (3 each) — otherwise
++    every supporting page is probed, none rendered, and the dossier is all unknown (measured on runway.com and stripe.com)."""
++
++    def test_probes_leave_room_to_render_when_many_pages_match(self):
++        hits = {D: [SearchHit(f"https://acme.test/p{i}", "About Acme", "") for i in range(60)]}
++        pages = {f"https://acme.test/p{i}": "Kind: own\n\nAcme was founded in 2014." for i in range(60)}
++        gw = SlowGateway(hits, pages, claims=[], live=True)
++        fields, meter = build(gw)
++        self.assertGreaterEqual(len([c for c in gw.calls if c[0] == "render"]), 1)
++        self.assertEqual(fields["founded_year"]["value"], 2014)
++        self.assertLessEqual(meter.spent, 80)

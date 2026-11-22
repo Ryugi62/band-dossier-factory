@@ -62,6 +62,8 @@ rendered text becomes a candidate (`FACTORY.md`, "What did not work"). The cause
 blocking (the 403s and 45 s timeouts took 10 of the 80 units). All unit figures below are on the mock web's
 sample providers. We did not edit the stage folder or the response file after the run.
 
+After the run, a diagnostic outside the factory (`docs/live-diag/`, human operator, patch stored there, stage folders unchanged) confirmed the cause: with at most 6 probes in flight, the same two domains at 79 and 80 units end with 4 and 6 of 8 fields filled (known or contested) instead of 0. The filled values are not checked against ground truth and at least one is wrong (`docs/live-diag/README.md`); it is not a factory result and not part of any figure below.
+
 ## Model spend (measured from the seats' session logs)
 
 Four Claude Code sessions, 750 assistant messages, 287,781,523 tokens in total, of which **1,069,632 are output
